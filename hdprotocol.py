@@ -12,12 +12,13 @@ try:
 	from func import ripemd160, dsha256, sha256, hexlify, bech32_encode, check_encode, check_decode
 	from bip32 import BIP32Key, BIP32_HARDEN
 	from address import P2PKH, P2SH, P2WPKHoP2SH, P2WSHoP2SH, P2WPKH, P2WSH
+	from fver import query_path, query_coin_num
 
 except Exception as e:
-	raise e
 	from .bip32 import BIP32Key, BIP32_HARDEN
 	from .func import ripemd160, dsha256, sha256, hexlify, bech32_encode, check_encode, check_decode
 	from .address import P2PKH, P2SH, P2WPKHoP2SH, P2WSHoP2SH, P2WPKH, P2WSH
+	from .fver import query_path, query_coin_num
 
 class bip39(object):
 
@@ -51,7 +52,7 @@ class _serialize(object):
 class serialize(object):
 
 	def __init__(self, path, entropy = "", passphrase = "", mnemonic = "",
-				  bip = 44, cointype = "bitcoin", testnet = False, custom_addr_type = None):
+				  bip = 44, cointype = "bitcoin", testnet = False, custom_addr_type = None, adapt_path = True):
 		self._entropy 		= entropy
 		self.seed 			= None
 		self.mnemonic 		= mnemonic
@@ -59,13 +60,13 @@ class serialize(object):
 		self.passphrase 	= passphrase
 		self.BIP32_HARDEN 	= 0x80000000
 		self.k 				= None
-		self.accounts 		= {}
 		self.bip 			= bip
 		self.bip32_root_key = None
 		self.bip32_ext_key 	= None
-		self.cointype		= cointype
+		self.cointype		= cointype.lower() if isinstance(cointype, str) else cointype
 		self.testnet		= testnet
-		self.custom_addr_type = None
+		self.custom_addr_type = custom_addr_type
+		self.adapt_path 	= adapt_path
 		self.initialize
 
 
@@ -83,45 +84,67 @@ class serialize(object):
 		else:
 			raise AttributeError("If you must specify entropy or mnemonic.")
 
-		# verify path
-		usingbip = True if re.findall(r"(m\/(44|49|84)')(\/\w+'){2}(\/0)", self.path) else False 
+		# checking path
+		self.usingbip = True if re.findall(r"(m\/(44|49|84)')(\/\w+'){2}(\/0)", self.path) else False 
 		path = self.path.split("/")
 		self.path = path + [None] if path[0] == path[-1] else path  
-		
-		if usingbip == False:
-			warnings.warn("Are you using custom module? \
-				Specify your address type! Now your address type is {}".format(self.custom_addr_type))
-
 		self.bip = int(path[1][:-1]) if path[-1] else None
+		
+		# whether using custom module(custom address type)
+		if self.usingbip == False and not self.custom_addr_type:
+			warnings.warn("Are you using custom module? Specify your address type! Now your address type is {}.".format(self.custom_addr_type))
+		
+		elif self.usingbip == True and self.custom_addr_type:
+			raise RuntimeError("Are you using custom module? Purpose can not be {}.".format(self.bip))
 
+		# whether cointype match path. using tuple or list to trigger custom version bytes
+		if isinstance(self.cointype, str):
+			# using coin name
+			path_from_db = query_path(cointype = self.cointype, testnet = self.testnet, bip = self.bip)
+			vers_from_db = query_coin_num(cointype = self.cointype, testnet = self.testnet, bip = self.bip)
+			
+			if path_from_db:
+				if not re.findall(path_from_db, self.showpath(self.path)):
+					warnings.warn("Path or Cointype error, the path should start with `{}` if your cointype is `{}`(testnet is {})".format(path_from_db, self.cointype, self.testnet), stacklevel = 2)
+			else:
+				warnings.warn("Cointype unknown".format(path_from_db, self.cointype, self.testnet))
+		
+		# Correct path
+		if not self.adapt_path:
+			if vers_from_db:
+				self.path[2] = "{}'".format(vers_from_db)
+			else:
+				warnings.warn("Can not correct your path, database does not have relative info")
+			
 		# preparing generate child-key
-		self.split_path()
+		self._path()
 
-	def split_path(self):
+	def _path(self):
 		k = BIP32Key.fromEntropy(self.seed, testnet=self.testnet)
 
 		if not self.bip32_root_key:
 			# store root key.
-			self.bip32_root_key = (k.ExtendedKey(private=False, encoded=True),
-						k.ExtendedKey(private=True, encoded=True))
+			self.bip32_root_key = self.exkey(k)
 
 		if self.path[-1]:
 			for _, p in enumerate(self.path):
 				if "'" in p and p != 'm':
-					k = k.ChildKey(int(p.strip("'"))+self.BIP32_HARDEN)
+					k = k.ChildKey(int(p.strip("'")) + self.BIP32_HARDEN)
 				elif p != 'm':
 					k = k.ChildKey(int(p))
 				if _ == 3:
-					self.accounts[self.showpath(self.path)[:-1]] = (k.ExtendedKey(),
-																	k.ExtendedKey(private=False))
+					self.accounts = self.exkey(k)
 		
 		self.k = k
-		self.bip32_ext_key = (k.ExtendedKey(private=False, encoded=True),
-						k.ExtendedKey(private=True, encoded=True))
+		self.bip32_ext_key = self.exkey()
+
+		if isinstance(self.cointype, (tuple, list)):
+			self.cointype = "Custom cointype"
 
 	def index(self,n):
 		return self.k.ChildKey(n)
 
+	@property
 	def account(self):
 		return self.accounts
 
@@ -143,52 +166,55 @@ class serialize(object):
 		return pk_bytes, addr_type
 
 	def address(self, k = None, addr_type = None):
-		
+
 		pk_bytes, addr_type = self.pk_bytes(k, addr_type)
 
 		if self.bip == 44:
-			return P2PKH(pk_bytes).address
+			return P2PKH(pk_bytes, testnet = self.testnet).address
 		elif self.bip == 49:
-			return P2WPKHoP2SH(pk_bytes).address
+			return P2WPKHoP2SH(pk_bytes, testnet = self.testnet).address
 		elif self.bip == 84:
-			return P2WPKH(pk_bytes).address
+			return P2WPKH(pk_bytes, testnet = self.testnet).address
 
 		self.check_addr_type(addr_type)
 
-		return addr_type(pk_bytes).address
+		return addr_type(pk_bytes, testnet = self.testnet).address
 
 	def scriptpubkey(self, k = None, addr_type = None):
 
 		pk_bytes, addr_type = self.pk_bytes(k, addr_type)
 
 		if self.bip == 44:
-			return P2PKH(pk_bytes).scriptpubkey
+			return P2PKH(pk_bytes, testnet = self.testnet).scriptpubkey
 		elif self.bip == 49:
-			return P2WPKHoP2SH(pk_bytes).scriptpubkey
+			return P2WPKHoP2SH(pk_bytes, testnet = self.testnet).scriptpubkey
 		elif self.bip == 84:
-			return P2WPKH(pk_bytes).scriptpubkey
+			return P2WPKH(pk_bytes, testnet = self.testnet).scriptpubkey
 
 		self.check_addr_type(addr_type)
 
-		return addr_type(pk_bytes).scriptpubkey
+		return addr_type(pk_bytes, testnet = self.testnet).scriptpubkey
 
 	def redeemscript(self, k = None, addr_type = None):
 			
 		pk_bytes, addr_type = self.pk_bytes(k, addr_type)
 
 		if self.bip == 44:
-			return P2PKH(pk_bytes).redeemscript
+			return P2PKH(pk_bytes, testnet = self.testnet).redeemscript
 		elif self.bip == 49:
-			return P2WPKHoP2SH(pk_bytes).redeemscript
+			return P2WPKHoP2SH(pk_bytes, testnet = self.testnet).redeemscript
 		elif self.bip == 84:
-			return P2WPKH(pk_bytes).redeemscript
+			return P2WPKH(pk_bytes, testnet = self.testnet).redeemscript
 
 		self.check_addr_type(addr_type)
 		
-		return addr_type(pk_bytes).redeemscript
+		return addr_type(pk_bytes, testnet = self.testnet).redeemscript
 		
-	def exkey(self):
-		return self.k.ExtendedKey(bip=self.bip,cointype=self.cointype),self.k.ExtendedKey(private=False,bip=self.bip,cointype=self.cointype)
+
+	def exkey(self, k = None, encoded = True):
+		k = k if k else self.k
+		return (k.ExtendedKey(bip = self.bip, cointype = self.cointype, encoded = encoded), 
+				k.ExtendedKey(private=False, bip = self.bip, cointype = self.cointype, encoded = encoded))
 
 	def cokey(self , k = None):
 		key = (self.k.PrivateKey(),self.k.PublicKey()) if k == None else (k.PrivateKey(),k.PublicKey())
@@ -197,7 +223,8 @@ class serialize(object):
 	def wif(self, k = None):
 		return self.k.WalletImportFormat() if k == None else k.WalletImportFormat()
 
-	def generator(self, n = 1):
+	def generate(self, n = 1):
+
 		main_path = self.showpath(self.path)
 		self.next()
 		
@@ -212,6 +239,14 @@ class serialize(object):
 
 		return self.details(addr=gen_list)
 
+
+	def generate_multisig_info(self, m, n):
+		if not self.usingbip:
+			# go
+			pass
+
+		raise RuntimeError("bip44/bip49/bip84 should not be used to create custom address.")
+
 	def showpath(self, p):
 		return "".join([s+"/" for s in self.path])
 
@@ -221,25 +256,26 @@ class serialize(object):
 		self.wif()
 
 	def details(self, addr):
+		
 		__format = OrderedDict({
 			"Entropy": self._entropy,
 			"Mnemonic": self.mnemonic,
 			"Seed": hexlify(self.seed),
 			"BIP32 Root Key": self.bip32_root_key,
-			"Coin": self.cointype,
+			"Cointype": self.cointype,
 			"Purpose": self.path[1][:-1],
 			"Coin": self.path[2][:-1],
 			"Account": self.path[3][:-1],
 			"External/Internal": self.path[4],
-			"Account Extended Private Key": None,
-			"Account Extended Public Key": None,
+			"Account Extended Private Key": self.account[0],
+			"Account Extended Public Key": self.account[1],
 			"BIP32 Derivation Path": self.showpath(self.path)[:-1],
 			"BIP32 Extended Pri/Pub Key": self.bip32_ext_key, 
 			"Derived Addresses": addr
 		})
-		return FileStruct(__format)
+		return Transition(__format)
 
-class FileStruct(object):
+class Transition(object):
 
 	def __init__(self, details = None):
 		self.details = details
@@ -274,8 +310,12 @@ class FileStruct(object):
 	def raw(self):
 		return self.details
 
+	@property
+	def to_importmulti(self):
+		raise NotImplementedError
 
 if __name__ == '__main__':
+	from pprint import pprint
 
 	words = "record pencil flock congress slim antenna tongue engage swamp soup stumble uniform collect surface neck snow celery goddess conduct cycle crowd smile secret panel"
 	entropy = "b3d45565178cbc13b91a52db39ff5ef6b2d9b464ee6c250c84bb1b63459970a4"
@@ -284,19 +324,17 @@ if __name__ == '__main__':
 	assert bip39.to_seed(words) == unhexlify(seed)
 
 	
-	entropy = "a62e81c7dcfa6dcae1f066f1aacddafa"
-	mnemonic = "plate inject impose rigid plug tornado march art vast filter issue village"
-	bip44 = serialize(path="m/44'/0'/0'/0",entropy=entropy) # mnemonic = mnemonic
-	store44 = bip44.generator(7)
+	# Giving right cointype and path
+	# default cointype is bitcoin
+	bip44 = serialize(path="m/44'/0'/0'/0", entropy=entropy, cointype = "bitcoin")
+	
+	# Giving wrong cointype but right path, functions will choose your path first. 
+	# If cointype unknown, extended key will be empty. specify version bytes cointype = ("0488b21e", "0488ade4")
+	bip44_2 = serialize(path="m/44'/0'/0'/0", entropy=entropy, cointype = "bitcoins")
 
-	'''
-	bip49 = serialize(path="m/49'/0'/0'/0",entropy=entropy)
-	store49 = bip49.generator(7).Derived_Addresses # P2WPKHoP2SHAddress
+	bip44_3 = serialize(path="m/44'/0'/0'/0", entropy=entropy, cointype = ("0488b21e", "0488ade4"))
+	assert bip44.generate(2).Derived_Addresses == bip44_2.generate(2).Derived_Addresses == bip44_3.generate(2).Derived_Addresses
+	
 
-	bip84 = serialize(path="m/84'/0'/0'/0",entropy=entropy)
-	store84 = bip84.generator(7).Derived_Addresses # p2wpkh
-
-	print(store44, store49, store84)
-	'''
-	from pprint import pprint
-	pprint(store44.raw)
+	# Using HD protocol to generate custom address type. purpose can not be 44 49 84.
+	custom = serialize(path="m/2'/0", entropy=entropy, cointype = "bitcoin", custom_addr_type = P2WPKH)
