@@ -19,13 +19,13 @@ def MoNscript(m, n, publickeylist):
 	# Be careful the order of publickeylist, which will change your address. Then redeem unsuccessfully
 	if isinstance(publickeylist, list) or isinstance(publickeylist, tuple)\
 		and (isinstance(m, int) and isinstance(n) and m <= n and m >= 1):
-		m += 50
-		n += 50
-		start = [bytes.fromhex("{}".format(m))]
+		m += 80
+		n += 80
+		start = [bytes.fromhex(_hex(m))]
 		for pk in publickeylist:
 			pk = pk if isinstance(pk, bytes) else bytes.fromhex(pk)
 			start += [bytes.fromhex(hex(len(pk))[2:]), pk]
-		start += [bytes.fromhex("{}".format(n)), bytes.fromhex("ae")]
+		start += [bytes.fromhex(_hex(n)), bytes.fromhex("ae")]
 	else:
 		raise NotImplementedError("Can not handle your input")
 

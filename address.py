@@ -207,14 +207,14 @@ class P2WSH(base):
 				dec = bech32_decode("tb", witnessScript)
 
 		if dec:
-			return witnessScript, hexlify(bytes.fromhex('0020') + bytes(dec[1]))
+			return None, hexlify(bytes.fromhex('0020') + bytes(dec[1]))
 
 		pk_added_code = bytes.fromhex('0020') + sha256(witnessScript).digest()
-		return witnessScript, hexlify(pk_added_code)
+		return None, hexlify(pk_added_code)
 
 
 if __name__ == '__main__':
-
+	# Ignoring redeemscript as this is not a P2SH script. Means only P2SH need redeemscript
 	pk = "0279BE667EF9DCBBAC55A06295CE870B07029BFCDB2DCE28D959F2815B16F81798"
 	p2wsh = "bc1qrp33g0q5c5txsp9arysrx4k6zdkfs4nce4xj0gdcccefvpysxf3qccfmv3"
 	p2wpkh = "bc1qw508d6qejxtdg4y5r3zarvary0c5xw7kv8f3t4"
