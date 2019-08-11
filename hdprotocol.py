@@ -1,4 +1,3 @@
-import sqlite3
 import re
 import json
 import csv
@@ -48,15 +47,18 @@ class bip39(object):
 
 class serialize(object):
 
-	def __init__(self, path, entropy = "", passphrase = "", mnemonic = "",
+	def __init__(self, path, entropy = "", passphrase = "", mnemonic = "", lang = "english",
 				  cointype = "bitcoin", testnet = False,
-				  custom_addr_type = None, adapt_path = True):
+				  custom_addr_type = None, adapt_path = True, extend_key = False, warning = True):
 		self._entropy 		= entropy
 		self.mnemonic 		= mnemonic
+		self.lang 			= lang
 		self.path 			= path
 		self.passphrase 	= passphrase
 		self.BIP32_HARDEN 	= 0x80000000
 		self.bip32_root_key = None
+		self.extend_key		= extend_key
+		self.bip 			= None
 		self.cointype		= cointype.lower() if isinstance(cointype, str) else cointype
 		self.testnet		= testnet
 		self.custom_addr_type = custom_addr_type
@@ -71,7 +73,7 @@ class serialize(object):
 			self.seed = bip39(words = self.mnemonic).to_seed(self.passphrase)
 
 		elif self._entropy:
-			words = bip39.to_mnemonic(entropy = self._entropy)
+			words = bip39.to_mnemonic(entropy = self._entropy, lang = self.lang)
 			self.mnemonic = words
 			self.seed = bip39.to_seed(words, self.passphrase)
 
@@ -81,28 +83,29 @@ class serialize(object):
 		# checking path
 		self.usingbip = True if re.findall(r"(m\/(44|49|84)')(\/\w+'){2}(\/0)", self.path) else False 
 		path = self.path.split("/")
-		self.path = path + [None] if path[0] == path[-1] else path  
-		self.bip = int(path[1][:-1]) if path[-1] else None
+		self.path = path + [None] if path[0] == path[-1] else path
+		if not self.custom_addr_type:
+			self.bip = int(path[1][:-1]) if path[-1] else None
 		
 		# whether using custom module(custom address type)
-		if not self.usingbip and not self.custom_addr_type:
+		if not self.usingbip and not self.custom_addr_type and warning:
 			warnings.warn("Are you using custom module? Specify your address type! Now your address type is {}.".format(self.custom_addr_type))
 		
-		elif self.usingbip and self.custom_addr_type:
+		elif self.usingbip and self.custom_addr_type and warning:
 			raise RuntimeError("Are you using custom module? Purpose can not be {}.".format(self.bip))
 
 		# whether cointype match path. using tuple or list to trigger custom version bytes
-		if isinstance(self.cointype, str):
+		if isinstance(self.cointype, str) and not self.custom_addr_type:
 			# using coin name
 			path_from_db = query_path(cointype = self.cointype, testnet = self.testnet, bip = self.bip)
 			vers_from_db = query_coin_num(cointype = self.cointype, testnet = self.testnet, bip = self.bip)
+			if warning:
+				if path_from_db:
+					if not re.findall(path_from_db, self.showpath(self.path)):
+						warnings.warn("Path or Cointype error, the path should start with `{}` if your cointype is `{}`(testnet is {})".format(path_from_db, self.cointype, self.testnet), stacklevel = 2)
+				else:
+					warnings.warn("Cointype unknown".format(path_from_db, self.cointype, self.testnet))
 			
-			if path_from_db:
-				if not re.findall(path_from_db, self.showpath(self.path)):
-					warnings.warn("Path or Cointype error, the path should start with `{}` if your cointype is `{}`(testnet is {})".format(path_from_db, self.cointype, self.testnet), stacklevel = 2)
-			else:
-				warnings.warn("Cointype unknown".format(path_from_db, self.cointype, self.testnet))
-		
 		# Correct path
 		if not self.adapt_path:
 			if vers_from_db:
@@ -116,7 +119,7 @@ class serialize(object):
 	def _path(self):
 		k = BIP32Key.fromEntropy(self.seed, testnet=self.testnet)
 
-		if not self.bip32_root_key and not self.custom_addr_type:
+		if not self.bip32_root_key and not self.custom_addr_type and self.extend_key:
 			# store root key.
 			self.bip32_root_key = self.exkey(k)
 
@@ -126,11 +129,11 @@ class serialize(object):
 					k = k.ChildKey(int(p.strip("'")) + self.BIP32_HARDEN)
 				elif p != 'm':
 					k = k.ChildKey(int(p))
-				if _ == 3 and not self.custom_addr_type:
+				if _ == 3 and not self.custom_addr_type and self.extend_key:
 					self.accounts = self.exkey(k)
 		
 		self.k = k
-		if not self.custom_addr_type:
+		if not self.custom_addr_type and self.extend_key:
 			self.bip32_ext_key = self.exkey()
 
 		if isinstance(self.cointype, (tuple, list)):
@@ -209,8 +212,11 @@ class serialize(object):
 		return [subpath, address] + key + [redeemscript]
 
 	def generate(self, n = 1, sf = 0, poolsize = 8, raw = True):
+		n += sf
 		poolsize = poolsize if (n - sf) >= poolsize else (n - sf)
-		
+		if raw:
+			# If false, means user NEED THIS
+			raw = False if self.extend_key else True
 		main_path = self.showpath(self.path)
 
 		info = partial(self.info, main_path = main_path)
@@ -231,7 +237,7 @@ class serialize(object):
 
 	def generate_multisig(self, mon, sf = 0, poolsize = 8):
 		m, n = mon
-
+		n += sf
 		if not self.usingbip:
 			poolsize = poolsize if (n - sf) >= poolsize else (n - sf)
 		
@@ -257,12 +263,12 @@ class serialize(object):
 		raise RuntimeError("bip44/bip49/bip84 should not be used to create custom address.")
 
 	def showpath(self, p):
-		return "".join([s+"/" for s in self.path])
+		return "".join([s+"/" for s in p])
 
 
 	def details(self, addr):
 		
-		if not self.custom_addr_type:
+		if not self.custom_addr_type and self.extend_key:
 			__format = OrderedDict({
 				"Entropy": self._entropy,
 				"Mnemonic": self.mnemonic,
@@ -284,6 +290,8 @@ class serialize(object):
 			__format = OrderedDict({
 				"Entropy": self._entropy,
 				"Mnemonic": self.mnemonic,
+				"Seed": hexlify(self.seed),
+				"Main path":self.showpath(self.path),
 				"Derived Addresses": addr
 			})
 
@@ -306,6 +314,7 @@ class serialize(object):
 		l = []
 		
 		if not mon:
+			n += sf
 			poolsize = poolsize if (n - sf) >= poolsize else (n - sf)
 		
 			main_path = self.showpath(self.path)
@@ -344,21 +353,20 @@ class Transition(object):
 
 	@property
 	def to_csv(self):
-		with open('{}.csv'.format(self.Mnemonic), 'w+', newline='') as csvfile:
-			fieldnames = ['Path', 'Address', 'Public Key', 'Private Key', 'Wallet import form']
+		with open('{}.csv'.format(self.Entropy), 'w+', newline='') as csvfile:
+			fieldnames = ['Path', 'Address', 'Public Key', 'Wallet import form']
 			writer = csv.DictWriter(csvfile, fieldnames=fieldnames)
 
 			writer.writeheader()
-			for path, address, pub, pri, wif in self.Derived_Addresses:
+			for path, address, pub, wif in self.Derived_Addresses:
 				writer.writerow({'Path': path,
 								 'Address': address,
 								 "Public Key": pub,
-								 "Private Key": pri,
 								 "Wallet import form": wif})
 
 	@property
 	def to_json(self):
-		with open('{}.json'.format(self.Mnemonic), "w+") as fd:
+		with open('{}.json'.format(self.Entropy), "w+") as fd:
 			return json.dump(self.details, fd, indent=4)
 
 
@@ -423,11 +431,11 @@ if __name__ == '__main__':
                         '03a624c0a49da54de87610c2ce4acabaa361eec92892fb7b3b61a8cdd627dbc090',
                         'L2Z77hYwweAsFNpq4hd3G83AoGX8wLnWXsxmEpM9hLUsbaGPztBL']])
 
-	custom2 = serialize(path="m/4'/0", entropy=entropy, cointype = "bitcoin", custom_addr_type = P2WPKHoP2SH, testnet = True)
+	custom2 = serialize(path="m/4'/0", entropy=entropy, custom_addr_type = P2WPKHoP2SH, testnet = True)
 	# origin, importmulti = custom2.to_importmulti(2) # whether test succeeded or not, need bitcoin-core
 
 	# multisig 16/16 seems to long.
-	custom3 = serialize(path="m/9'/0", entropy=entropy, cointype = "bitcoin", custom_addr_type = P2WSH, testnet = True)
+	custom3 = serialize(path="m/9'/0", entropy=entropy, custom_addr_type = P2WSH, testnet = True)
 	result = custom3.generate_multisig(mon = (15,15))
 	origin, importmulti2 = custom3.to_importmulti(mon = (15,15))
 	assert result == origin
