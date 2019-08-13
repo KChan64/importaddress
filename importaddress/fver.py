@@ -36,12 +36,3 @@ def query_coin_num(cointype="bitcoin",testnet=False,private=False,bip=44):
 	c.execute("select {} from bip32version where coin='{}' and bip={}".format(path,cointype,bip))
 	result = c.fetchall()
 	return result[0][0] if result else None
-
-
-def query_lsit(testnet=False,public=False):
-	c = connection.cursor()
-	key = "pubkey" if public else "privkey"
-	cointype = "n" if not testnet else " "+"testnet"
-	c.execute("select {} from bip32version where coin like '%{}'".format(key,cointype))
-	l = list(bytes(e[0],"utf8") for e in c.fetchall())
-	return l

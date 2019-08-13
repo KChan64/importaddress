@@ -70,11 +70,12 @@ def decode(data):
     return b"\x00"*x00 + bytes(dec[::-1])
 
 
-def check_decode(enc):
+def check_decode(enc, need_prefix = False):
     "Decode bytes from Bitcoin base58 string and test checksum"
     dec = decode(enc)
     raw, chk = dec[:-4], dec[-4:]
     if chk != sha256(sha256(raw).digest()).digest()[:4]:
         raise ValueError("base58 decoding checksum error")
-    else:
+    elif not need_prefix:
         return raw[1:]
+    return raw

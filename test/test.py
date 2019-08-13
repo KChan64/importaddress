@@ -7,14 +7,15 @@ from collections import OrderedDict
 words = "record pencil flock congress slim antenna tongue engage swamp soup stumble uniform collect surface neck snow celery goddess conduct cycle crowd smile secret panel"
 entropy = "b3d45565178cbc13b91a52db39ff5ef6b2d9b464ee6c250c84bb1b63459970a4"
 seed = "b0c32baffae7dc92b61706424ca70077f0b5252f1c75d37eeb3f783caec3bcb45a61f42cd2262398ea97bdf58be668d00266492ac4dddece59112928205970b6"
+extendedkey = "xprv9s21ZrQH143K33Hs433wxGWgdEEJnW9UxGGiYjBm3h8i3T2azuvWETDw3khwd6CafxUHiko1C5RmfArFgFS5LnxnXbwJkTft7Rt9ozKMJoX"
+extendedkey_testnet = "tprv8ZgxMBicQKsPdrXPibuT7v8fwMeX22BVHpBqR9cDXfdBq3mfzHGFkCbNxvsbdTau3Q14irQmMS1a82PzoTn29rEP4F9cQpPw2XdaFe8TVxZ"
 
 class test(unittest.TestCase):
-	"""docstring for test"""
-
+	
 	def test_using_bip44_49_84(self):
 		'''
 		Default cointype is `bitcoin`, cointype only influence version bytes of `extended key`.
-		If you want to see `extended key` you have to set parameter `extend_key = True` and 
+		If you want to see `extended key` you have to set parameter `show_extend_key = True` and 
 			use `to_json` or `raw` to show it
 		'''
 		bip44 = serialize(path="m/44'/0'/0'/0", entropy=entropy).generate(5)
@@ -45,9 +46,9 @@ class test(unittest.TestCase):
 
 	def test_using_bip__with_wrong_cointype(self):
 		# It doesn't matter, because only `extended key` is associated with cointype
-		# When `extend_key` turn off, so `ExtendedKey` function will not be triggered. 
+		# When `show_extend_key` turn off, so `ExtendedKey` function will not be triggered. 
 		# That means cointype will not be used
-		# default `extend_key = False`
+		# default `show_extend_key = False`
 		bip44 = serialize(path="m/44'/0'/0'/0", entropy=entropy, 
 							cointype = "bitcoins")
 		addresses = bip44.generate(2)
@@ -58,7 +59,7 @@ class test(unittest.TestCase):
 		# But when you turn on it, 
 		#	library will warn you that database could not find a relative version bytes
 		bip49 = serialize(path="m/49'/0'/0'/0", entropy=entropy,
-							cointype = "bitcoins", extend_key = True)
+							cointype = "bitcoins", show_extend_key = True)
 		bip49 = bip49.generate(2).raw
 
 		self.assertEqual(bip49.get("Entropy") , "b3d45565178cbc13b91a52db39ff5ef6b2d9b464ee6c250c84bb1b63459970a4")
@@ -80,25 +81,25 @@ class test(unittest.TestCase):
 	def test_using_bip__with_custom_version_bytes(self):
 
 		bip44 = serialize(path="m/44'/0'/0'/0", entropy=entropy,
-							cointype = ("0488b21e", "0488ade4"), extend_key = True).generate(4)
+							cointype = ("0488ade4", "0488b21e"), show_extend_key = True).generate(4)
 
 		bip44 = bip44.raw
 
 		self.assertEqual(bip44.get("Entropy") , "b3d45565178cbc13b91a52db39ff5ef6b2d9b464ee6c250c84bb1b63459970a4")
 		self.assertEqual(bip44.get("Mnemonic") , "record pencil flock congress slim antenna tongue engage swamp soup stumble uniform collect surface neck snow celery goddess conduct cycle crowd smile secret panel")
 		self.assertEqual(bip44.get("Seed") , "b0c32baffae7dc92b61706424ca70077f0b5252f1c75d37eeb3f783caec3bcb45a61f42cd2262398ea97bdf58be668d00266492ac4dddece59112928205970b6")
-		self.assertEqual(bip44.get("BIP32 Root Key") , ('xpub661MyMwAqRbcFXNLA4axKQTRBG4oBxsLKVCKM7bNc2fgvFMjYTEknFYQtwrDiGMB5gvHdCuvrqBEGcQ3Zuvd6eYx3cFgbnUw3HmPZzAyvRk', 
-														 'xprv9s21ZrQH143K33Hs433wxGWgdEEJnW9UxGGiYjBm3h8i3T2azuvWETDw3pVmfaYvp34oJxZ6zT73iFJUwMsRkyGSaC3fUBs4tmCfa1cW62g'))
+		self.assertEqual(bip44.get("BIP32 Root Key") , ('xprv9s21ZrQH143K33Hs433wxGWgdEEJnW9UxGGiYjBm3h8i3T2azuvWETDw3khwd6CafxUHiko1C5RmfArFgFS5LnxnXbwJkTft7Rt9ozKMJoX', 
+														 'xpub661MyMwAqRbcFXNLA4axKQTRBG4oBxsLKVCKM7bNc2fgvFMjYTEknFYQu1e3kkhXDmWoDQg2fCrWKgrGq2MyWprc6CN3KWg7pd5uL2i4JHv'))
 		self.assertEqual(bip44.get("Cointype") , "Custom cointype")
 		self.assertEqual(bip44.get("Purpose") , "44")
 		self.assertEqual(bip44.get("Coin") , "0")
 		self.assertEqual(bip44.get("Account") , "0")
 		self.assertEqual(bip44.get("External/Internal") , "0")
-		self.assertEqual(bip44.get("Account Extended Private Key") , "xpub6CUZvce9CMPYuhuDd4HFbDeEYQZSq72WcKMpQFc8tEobD9Zv93Mh1QzwvfZ6YRvVuav6B27VfyT4Sj4Q1G1Zbn8dtmNYGtAdngKYWG9TE9S")
-		self.assertEqual(bip44.get("Account Extended Public Key") , "xprv9yVDX77FMyqFhDpkX2kFE5hVzNixReJfF6SDbsCXKuGcLMEmbW3STcgU5ZZsUz4oxKXFmCFeVDFgaZ1zqgXAkaW37KivAFyXR4azWn6QKDY")
+		self.assertEqual(bip44.get("Account Extended Private Key") , "xprv9yVDX77FMyqFhDpkX2kFE5hVzNixReJfF6SDbsCXKuGcLMEmbW3STcgU5UQpTFmuVrU6GZza1DhbqHWc7bX1qvYUNm4ARZMarpSJkFrvhfA")
+		self.assertEqual(bip44.get("Account Extended Public Key") , "xpub6CUZvce9CMPYuhuDd4HFbDeEYQZSq72WcKMpQFc8tEobD9Zv93Mh1Qzwvki9aADQN3yFfeNa9y19BzZnjM1iWS6CdL3J1anaLvUEGt3rXFv")
 		self.assertEqual(bip44.get("BIP32 Derivation Path") , "m/44'/0'/0'/0")
-		self.assertEqual(bip44.get("BIP32 Extended Pri/Pub Key") , ('xpub6FEobGTSLvSZoHiCUrd2oBPD8Q29e7fdjTDSa1UPstZRv9cbupSR8aQk1XuKcQtst9gQHZUTBqvkBTqrAqzg4Eg7v8X4iUWwm69GNuccJv2', 
-																	 'xprvA2FTBkvYWYtGaodjNq62S3SUaNBfEewnNEHqmd4nKZ2T3MHTNH8Aan6GARAgABoGD46kd8yvxrWRyekRumNGsreRVVctezMKouRBmaBoCSb'))
+		self.assertEqual(bip44.get("BIP32 Extended Pri/Pub Key") , ('xprvA2FTBkvYWYtGaodjNq62S3SUaNBfEewnNEHqmd4nKZ2T3MHTNH8Aan6GALm3XEkHUREQP7MXX6BHa2J4HBW8JP5xQ8Cgs9htqEG2crpZbGp', 
+																	 'xpub6FEobGTSLvSZoHiCUrd2oBPD8Q29e7fdjTDSa1UPstZRv9cbupSR8aQk1cJxFMwrcnYkXb6rdcFtb6JDoRrpdiEb1VwGWKANjmJRXefJjAT'))
 		self.assertEqual(bip44.get("Derived Addresses") , [
 				["m/44'/0'/0'/0/0", '1C8ms58sg9a1dQKrTKwt2wP6eHGBJmnnEN', '0201192c11fdba5f77dbee8af32f2fe038981ae4ac93a360fd698cd9f5a0def3e1', 'L291freeUv6GGXDD23UkvuviTTiKsdgHZ5ViNVYMFTHQZoSiykYt'], 
 				["m/44'/0'/0'/0/1", '1PU2yxbUuxs2Va8jcnE2jhu2N6pvZXHuEU', '03fff7a05dda6e6b688dab2d534cc1f46cad271331dc67827cb0bf12007a64dd6e', 'L41ihSongCBiD9YCeKXWUidSmKPqGHEdhaHktsWHG6j1SFn46kWr'], 
@@ -318,7 +319,18 @@ class test(unittest.TestCase):
 		key = "5221035c8e83fa4ca1d74d10f122daaac69b006e5c02a1594b78907881190500b1f22a2102c1235301c06e94bdd44c248e6c824b58fafea3ceee4db2857402e322486046842103e46359fd20b25a7be466984f156084be0dead32e4e99cec2e0f7c9ad4863daaa53ae"
 		self.assertEqual(P2WSH(key).scriptpubkey , "0020d3124de88d90949cf90ed655bfd306f00d9473387eedc59d819d51bc6880f29d")
 		self.assertEqual(P2WSH("bc1qm2pz5342a0n3ctv9hm6s568zeye8cw7j90j0nmjdwkrcy78qs2nsfyp945").scriptpubkey , "0020da822a46aaebe71c2d85bef50a68e2c9327c3bd22be4f9ee4d75878278e082a7")
-
+	
+	
+	def test_fromExtendedKey(self):
+		bip44 = serialize(path="m/44'/0'/0'/0", extended_key = (extendedkey, False)).generate(5) # ispublic False
+		test_data = [
+					["m/44'/0'/0'/0/0","1C8ms58sg9a1dQKrTKwt2wP6eHGBJmnnEN","0201192c11fdba5f77dbee8af32f2fe038981ae4ac93a360fd698cd9f5a0def3e1","L291freeUv6GGXDD23UkvuviTTiKsdgHZ5ViNVYMFTHQZoSiykYt"],
+					["m/44'/0'/0'/0/1","1PU2yxbUuxs2Va8jcnE2jhu2N6pvZXHuEU","03fff7a05dda6e6b688dab2d534cc1f46cad271331dc67827cb0bf12007a64dd6e","L41ihSongCBiD9YCeKXWUidSmKPqGHEdhaHktsWHG6j1SFn46kWr"],
+					["m/44'/0'/0'/0/2","15Qry7hqCjqpaJ3pEoSnmFmhP3KhHwbthR","0219b78a84b266c70e8dcd060db655f36f3ea4f442b59158ee09bc7847e41a2135","Kxef5HZq9TUxW3PmHtHRe5XB7khqeTN4MC9NWsCMUNeZ7wCB1AmR"],
+					["m/44'/0'/0'/0/3","1MBgfJ2YHcaTk1WbuMgJzBYfJHDiK7grP3","038ef95d20f507d083b00bec9aa0f595046f1019dd0c1fa5e3e69b5b2eda78657d","KzdEGEWcWQkLb5RSsAMiopdKgcSTBP1bzp2Fdr9kERjryNxcGWxZ"],
+					["m/44'/0'/0'/0/4","139KkfwHytbBEQVW1GBCqJsJXud9P1dsHm","027bd4373aa42fdee6e064f7f8363cef796017ac79b27c72028dd349b50d36c3b9","L1SVV5jGhKbX4aZ5bejZVCXS51zK6b4TUGRneUewSjQ6ZHUQSoKt"]
+					]
+		self.assertEqual(bip44, test_data)
 
 if __name__ == '__main__':
 

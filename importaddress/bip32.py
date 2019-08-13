@@ -14,10 +14,10 @@ from ecdsa.numbertheory import square_root_mod_prime as sqrt_mod
 
 try:
 	from func import check_decode, check_encode, bech32_encode, bech32_decode, ripemd160
-	from fver import query_ver,query_lsit
+	from fver import query_ver
 except Exception as e:
 	from .func import check_decode, check_encode, bech32_encode, bech32_decode, ripemd160
-	from .fver import query_ver,query_lsit
+	from .fver import query_ver
 
 
 
@@ -51,48 +51,28 @@ class BIP32Key(object):
 		return key
 
 	@staticmethod
-	def fromExtendedKey(xkey, public=False):
+	def fromExtendedKey(xkey, public=False, testnet=False):
 		"""
 		Create a BIP32Key by importing from extended private or public key string
 
 		If public is True, return a public-only key regardless of input type.
 		"""
 		# Sanity checks
-		raw = check_decode(xkey)
-		if len(raw) != 78:
-			raise ValueError("extended key format wrong length")
-
-		# Verify address version/type
+		raw = check_decode(xkey, need_prefix = True)
 		version = raw[:4]
-		tversion = codecs.encode(version,"hex")
-		if tversion in query_lsit(testnet=False):
-			is_testnet = False
-			is_pubkey = False
-		elif tversion in query_lsit(testnet=True):
-			is_testnet = True
-			is_pubkey = False
-		elif tversion in query_lsit(public=True):
-			is_testnet = False
-			is_pubkey = True
-		elif tversion in query_lsit(public=True,testnet=True):
-			is_testnet = True
-			is_pubkey = True
-		else:
-			raise ValueError("unknown extended key version")
-
 		# Extract remaining fields
 		# Python 2.x compatibility
-		if type(raw[4]) == int:
-			depth = raw[4]
+		if type(raw[5]) == int:
+			depth = raw[5]
 		else:
-			depth = ord(raw[4])
+			depth = ord(raw[5])
 		fpr = raw[5:9]
 		child = struct.unpack(">L", raw[9:13])[0]
 		chain = raw[13:45]
-		secret = raw[45:78]
-
+		secret = raw[45:]
+		
 		# Extract private key or public key point
-		if not is_pubkey:
+		if not public:
 			secret = secret[1:]
 		else:
 			# Recover public curve point from compressed key
@@ -106,8 +86,8 @@ class BIP32Key(object):
 			point = ecdsa.ellipticcurve.Point(SECP256k1.curve, x, y)
 			secret = ecdsa.VerifyingKey.from_public_point(point, curve=SECP256k1)
 
-		key = BIP32Key(secret=secret, chain=chain, depth=depth, index=child, fpr=fpr, public=is_pubkey, testnet=is_testnet)
-		if not is_pubkey and public:
+		key = BIP32Key(secret=secret, chain=chain, depth=depth, index=child, fpr=fpr, public=public, testnet=testnet)
+		if public:
 			key = key.SetPublic()
 		return key
 

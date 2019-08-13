@@ -47,17 +47,17 @@ class bip39(object):
 
 class serialize(object):
 
-	def __init__(self, path, entropy = "", passphrase = "", mnemonic = "", lang = "english",
+	def __init__(self, path, entropy = "", passphrase = "", mnemonic = "", lang = "english", extended_key = "",
 				  cointype = "bitcoin", testnet = False,
-				  custom_addr_type = None, adapt_path = True, extend_key = False, warning = True):
+				  custom_addr_type = None, adapt_path = True, show_extend_key = False, warning = False):
 		self._entropy 		= entropy
 		self.mnemonic 		= mnemonic
 		self.lang 			= lang
 		self.path 			= path
 		self.passphrase 	= passphrase
 		self.BIP32_HARDEN 	= 0x80000000
-		self.bip32_root_key = None
-		self.extend_key		= extend_key
+		self.bip32_root_key = extended_key
+		self.show_extend_key= show_extend_key
 		self.bip 			= None
 		self.cointype		= cointype.lower() if isinstance(cointype, str) else cointype
 		self.testnet		= testnet
@@ -77,6 +77,9 @@ class serialize(object):
 			words = bip39.to_mnemonic(entropy = self._entropy, lang = self.lang)
 			self.mnemonic = words
 			self.seed = bip39.to_seed(words, self.passphrase)
+
+		elif self.bip32_root_key:
+			self.seed = None
 
 		else:
 			raise AttributeError("If you must specify entropy or mnemonic.")
@@ -118,9 +121,17 @@ class serialize(object):
 		self._path()
 
 	def _path(self):
-		k = BIP32Key.fromEntropy(self.seed, testnet=self.testnet)
+		if self.seed:
+			k = BIP32Key.fromEntropy(self.seed, testnet=self.testnet)
 
-		if not self.bip32_root_key and not self.custom_addr_type and self.extend_key:
+		elif isinstance(self.bip32_root_key, (list, tuple)):
+			xkey, ispublic = self.bip32_root_key
+			k = BIP32Key.fromExtendedKey(xkey, public = ispublic, testnet=self.testnet)
+
+		else:
+			raise RuntimeError("Lack of entropy/mnemonic/extendedkey")
+
+		if not self.bip32_root_key and not self.custom_addr_type and self.show_extend_key:
 			# store root key.
 			self.bip32_root_key = self.exkey(k)
 
@@ -130,11 +141,11 @@ class serialize(object):
 					k = k.ChildKey(int(p.strip("'")) + self.BIP32_HARDEN)
 				elif p != 'm':
 					k = k.ChildKey(int(p))
-				if _ == 3 and not self.custom_addr_type and self.extend_key:
+				if _ == 3 and not self.custom_addr_type and self.show_extend_key:
 					self.accounts = self.exkey(k)
 		
 		self.k = k
-		if not self.custom_addr_type and self.extend_key:
+		if not self.custom_addr_type and self.show_extend_key:
 			self.bip32_ext_key = self.exkey()
 
 		if isinstance(self.cointype, (tuple, list)):
@@ -217,7 +228,7 @@ class serialize(object):
 		poolsize = poolsize if (n - sf) >= poolsize else (n - sf)
 		if raw:
 			# If false, means user NEED THIS
-			raw = False if self.extend_key else True
+			raw = False if self.show_extend_key else True
 		main_path = self.showpath(self.path)
 
 		info = partial(self.info, main_path = main_path)
@@ -269,7 +280,7 @@ class serialize(object):
 
 	def details(self, addr):
 		
-		if not self.custom_addr_type and self.extend_key:
+		if not self.custom_addr_type and self.show_extend_key:
 			__format = OrderedDict({
 				"Entropy": self._entropy,
 				"Mnemonic": self.mnemonic,
