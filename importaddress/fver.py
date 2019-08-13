@@ -11,7 +11,7 @@ path = __file__[:-7]+"data\\bip32version.db"
 if not exists(path):
 	path = "./data/bip32version.db"
 	
-connection = sqlite3.connect(path)
+connection = sqlite3.connect(path.replace("\\", "/"))
 
 def query_ver(cointype="bitcoin",testnet=False,private=False,bip=44):
 	c = connection.cursor()
