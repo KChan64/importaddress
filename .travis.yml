@@ -7,21 +7,21 @@ before_cache:
 matrix:
   include:
       - python: 2.7
-        env: TOX_ENV=py27
+        env: ENV=py27
       - python: 3.4
-        env: TOX_ENV=py34
+        env: ENV=py34
       - python: 3.5
-        env: TOX_ENV=py35
+        env: ENV=py35
       - python: 3.6
-        env: TOX_ENV=py36
+        env: ENV=py36
       - python: 3.7
-        env: TOX_ENV=py37
+        env: ENV=py37
         dist: xenial
         sudo: true
       - python: pypy
-        env: TOX_ENV=pypy
+        env: ENV=pypy
       - python: pypy3
-        env: TOX_ENV=pypy3
+        env: ENV=pypy3
   allow_failures:
     - python: "pypy3"
 
@@ -31,10 +31,13 @@ install:
   # - pip list
   - python setup.py install
   - pip install codecov
+
 script:
-  # - tox -e $TOX_ENV
+  # - tox -e $ENV
   # - tox -e speed
-  - coverage run test/test.py
+  - cd test
+  - coverage run test.py
+
 after_success:
   - codecov
 

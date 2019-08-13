@@ -4,5 +4,5 @@
 include =
  importaddress/*
 omit =
- importaddress/test/test.py
- importaddress/test/speed.py
+ test/test.py
+ test/speed.py
