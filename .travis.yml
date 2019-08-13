@@ -6,8 +6,6 @@ before_cache:
   - rm -f $HOME/.cache/pip/log/debug.log
 matrix:
   include:
-      - python: 2.7
-        env: ENV=py27
       - python: 3.4
         env: ENV=py34
       - python: 3.5
@@ -24,7 +22,6 @@ matrix:
         env: ENV=pypy3
   
   allow_failures:
-    - python: "py27"
     - python: "pypy3"
     - python: "pypy"
 
