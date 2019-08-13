@@ -1,0 +1,40 @@
+sudo: false
+dist: xenial
+language: python
+cache: pip
+before_cache:
+  - rm -f $HOME/.cache/pip/log/debug.log
+matrix:
+  include:
+      - python: 2.7
+        env: TOX_ENV=py27
+      - python: 3.4
+        env: TOX_ENV=py34
+      - python: 3.5
+        env: TOX_ENV=py35
+      - python: 3.6
+        env: TOX_ENV=py36
+      - python: 3.7
+        env: TOX_ENV=py37
+        dist: xenial
+        sudo: true
+      - python: pypy
+        env: TOX_ENV=pypy
+      - python: pypy3
+        env: TOX_ENV=pypy3
+  allow_failures:
+    - python: "pypy3"
+
+install:
+  # - pip list
+  # - if [[ -e build-requirements-${TRAVIS_PYTHON_VERSION}.txt ]]; then travis_retry pip install -r build-requirements-${TRAVIS_PYTHON_VERSION}.txt; else travis_retry pip install -r build-requirements.txt; fi
+  # - pip list
+  - python setup.py install
+  - pip install codecov
+script:
+  # - tox -e $TOX_ENV
+  # - tox -e speed
+  - coverage run importaddress/test/tests.py
+after_success:
+  - codecov
+
