@@ -33,5 +33,5 @@ setup(name="importaddress",
           "Programming Language :: Python :: 3.6",
           "Programming Language :: Python :: 3.7",
       ],
-      install_requires=["python-mnemonic"],
+      install_requires=["mnemonic"],
       )
