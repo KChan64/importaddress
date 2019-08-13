@@ -1,7 +1,7 @@
 from binascii import hexlify as _hexlify
 from hashlib import sha256, new
-import segwit_addr
-import Base58
+from . import segwit_addr
+from . import Base58
 import warnings
 import sys
 
