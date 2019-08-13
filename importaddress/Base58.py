@@ -6,7 +6,6 @@
 # Modified by kcorlidy on 2019-05-07, because found an issue with input b"\x00\xff"*2
 
 from hashlib import sha256
-import unittest
 import re
 
 __base58_alphabet = '123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz'
@@ -79,27 +78,3 @@ def check_decode(enc):
         raise ValueError("base58 decoding checksum error")
     else:
         return raw[1:]
-
-
-class test(unittest.TestCase):
-
-    def test_check_encode(self):
-        data = b'now is the time for all good men to come to the aid of their country'
-        enc = check_encode(data)
-        self.assertEqual(check_decode(enc), data)
-
-    def test_encode(self):
-        data = b"123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz~!@#$%^&*()_+{}|:;'<>,./?"
-        enc = encode(data)
-        self.assertEqual(decode(enc), data)
-
-    def test_encode_utf8(self):
-        data = b"\x00\x00\xff\xff"
-        enc = encode(data)
-        print(enc)
-        self.assertEqual(decode(enc), data)
-
-
-if __name__ == '__main__':
-
-    unittest.main()

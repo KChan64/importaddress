@@ -79,7 +79,10 @@ class P2SH(base):
 		strx = lambda x: "a914{}87".format(x)
 
 		if script[0] in ["2","3"] and otherplaces:
-			return  strx(hexlify(check_decode(script)))
+			return strx(hexlify(check_decode(script)))
+			
+		elif script[0] in ["2","3"] and not otherplaces:
+			return script, strx(hexlify(check_decode(script)))
 
 		if len(script) >= 66 and not otherplaces:
 			return  script, strx(ripemd160(sha256(bytes.fromhex(script)).digest()).hexdigest())

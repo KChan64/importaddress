@@ -121,28 +121,3 @@ def encode(hrp, witver, witprog):
 	if decode(hrp, ret) == (None, None):
 		return None
 	return ret
-
-if __name__ == '__main__':
-	from codecs import encode as ec
-	from codecs import decode as dc
-	import hashlib
-	from hashlib import sha256
-
-	def segwit_scriptpubkey(witver, witprog):
-		"""Construct a Segwit scriptPubKey for a given witness program."""
-		print(a,b)
-		result = [witver + 0x50 if witver else 0, len(witprog)] + witprog
-		print(result,"result")
-		return bytes(result)
-
-	a,b = decode("bc","bc1qcr8te4kr609gcawutmrza0j4xv80jy8z306fyu")
-	pk = segwit_scriptpubkey(a,b)
-
-	#use pubkey to create p2wpkh address
-	ff = b"0330d54fd0dd420a6e5f8d3624f5f3482cae350f79d5f0753bf5beef9c2d91af3c"
-	ff = hashlib.new('ripemd160', sha256(ff).digest()).digest()
-	fff = bytes.fromhex('0014')+ff
-
-	l = list(bytearray(fff))
-	l0 = l[0] - 0x50 if l[0] else 0
-	print(encode("bc",l0,l[2:]))

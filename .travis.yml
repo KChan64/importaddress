@@ -28,9 +28,6 @@ matrix:
     - python: "pypy"
 
 install:
-  # - pip list
-  # - if [[ -e build-requirements-${TRAVIS_PYTHON_VERSION}.txt ]]; then travis_retry pip install -r build-requirements-${TRAVIS_PYTHON_VERSION}.txt; else travis_retry pip install -r build-requirements.txt; fi
-  # - pip list
   - python setup.py install
   - pip install codecov
 

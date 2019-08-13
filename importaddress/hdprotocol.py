@@ -303,14 +303,14 @@ class serialize(object):
 	
 	def to_importmulti(self, n = 1, sf = 0, poolsize = 8, mon = None):
 
-		__format = {'scriptPubKey': { "address": "" },
+		__format = OrderedDict({'scriptPubKey': { "address": "" },
 		  # "witnessscript": "", multigsig and witness
 		  "label": "",
 		  "timestamp":"now",
 		  "pubkeys":[],
 		  # "redeemscript":"", P2SH need
 		  "keys":[], # priv key
-		  "watchonly": False}
+		  "watchonly": False})
 		
 		l = []
 		
@@ -330,6 +330,7 @@ class serialize(object):
 				__format["pubkeys"] = [result[2]]
 				__format["keys"] = [result[3]]
 				if result[4]:
+					# P2WPK-P2SH
 					__format["redeemscript"] = result[4]
 				l.append(__format)
 
@@ -340,9 +341,15 @@ class serialize(object):
 		__format["label"] = result[0].replace("'","h")
 		__format["pubkeys"] = result[1]
 		__format["keys"] = result[2]
-		if result[5]:
-			__format["redeemscript"] = result[5]
-		__format["witnessscript"] = result[4]
+		if self.custom_addr_type != P2SH:
+			# P2WSH / P2WSH-PSH
+			if result[5]:
+				__format["redeemscript"] = result[5]
+
+			__format["witnessscript"] = result[4]
+		else:
+			# P2SH
+			__format["redeemscript"] = result[4]
 
 		return result, json.dumps([__format])
 

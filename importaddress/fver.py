@@ -5,7 +5,13 @@
 import sqlite3
 import codecs
 from binascii import hexlify
-connection = sqlite3.connect(__file__[:-7]+"data/bip32version.db")
+from os.path import exists
+
+path = __file__[:-7]+"data/bip32version.db"
+if not exists(pat):
+	path = "./data/bip32version.db"
+	
+connection = sqlite3.connect(path)
 
 def query_ver(cointype="bitcoin",testnet=False,private=False,bip=44):
 	c = connection.cursor()
@@ -39,8 +45,3 @@ def query_lsit(testnet=False,public=False):
 	c.execute("select {} from bip32version where coin like '%{}'".format(key,cointype))
 	l = list(bytes(e[0],"utf8") for e in c.fetchall())
 	return l
-
-if __name__ == '__main__':
-	print(query_ver())
-	print(query_lsit())
-	connection.close()
