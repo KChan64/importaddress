@@ -22,8 +22,10 @@ matrix:
         env: ENV=pypy
       - python: pypy3
         env: ENV=pypy3
+  
   allow_failures:
     - python: "pypy3"
+    - python: "pypy"
 
 install:
   # - pip list
