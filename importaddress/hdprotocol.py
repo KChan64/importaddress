@@ -63,6 +63,7 @@ class serialize(object):
 		self.testnet		= testnet
 		self.custom_addr_type = custom_addr_type
 		self.adapt_path 	= adapt_path
+		self.warning 		= warning
 		self.initialize
 
 
@@ -88,10 +89,10 @@ class serialize(object):
 			self.bip = int(path[1][:-1]) if path[-1] else None
 		
 		# whether using custom module(custom address type)
-		if not self.usingbip and not self.custom_addr_type and warning:
+		if not self.usingbip and not self.custom_addr_type and self.warning:
 			warnings.warn("Are you using custom module? Specify your address type! Now your address type is {}.".format(self.custom_addr_type))
 		
-		elif self.usingbip and self.custom_addr_type and warning:
+		elif self.usingbip and self.custom_addr_type and self.warning:
 			raise RuntimeError("Are you using custom module? Purpose can not be {}.".format(self.bip))
 
 		# whether cointype match path. using tuple or list to trigger custom version bytes
@@ -99,7 +100,7 @@ class serialize(object):
 			# using coin name
 			path_from_db = query_path(cointype = self.cointype, testnet = self.testnet, bip = self.bip)
 			vers_from_db = query_coin_num(cointype = self.cointype, testnet = self.testnet, bip = self.bip)
-			if warning:
+			if self.warning:
 				if path_from_db:
 					if not re.findall(path_from_db, self.showpath(self.path)):
 						warnings.warn("Path or Cointype error, the path should start with `{}` if your cointype is `{}`(testnet is {})".format(path_from_db, self.cointype, self.testnet), stacklevel = 2)
