@@ -334,7 +334,7 @@ class serialize(object):
 					__format["redeemscript"] = result[4]
 				l.append(__format)
 
-			return results, json.dumps(l) # original data, importmulti format
+			return l, json.dumps(l) # original data, importmulti format
 
 		result = self.generate_multisig(mon = mon, poolsize = poolsize, sf = sf)
 		__format["scriptPubKey"]["address"] = result[3]
@@ -351,7 +351,7 @@ class serialize(object):
 			# P2SH
 			__format["redeemscript"] = result[4]
 
-		return result, json.dumps([__format])
+		return __format, json.dumps([__format])
 
 class Transition(object):
 

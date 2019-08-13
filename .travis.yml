@@ -24,7 +24,7 @@ matrix:
         env: ENV=pypy3
   
   allow_failures:
-    - python: "2.7"
+    - python: "py27"
     - python: "pypy3"
     - python: "pypy"
 
