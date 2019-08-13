@@ -34,7 +34,7 @@ install:
 script:
   # - tox -e $TOX_ENV
   # - tox -e speed
-  - coverage run test/tests.py
+  - coverage run test/test.py
 after_success:
   - codecov
 
