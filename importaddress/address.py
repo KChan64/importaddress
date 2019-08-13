@@ -1,4 +1,4 @@
-from func import (
+from .func import (
 	check_decode, check_encode,
 	bech32_decode, bech32_encode,
 	ripemd160, hexlify, sha256,
