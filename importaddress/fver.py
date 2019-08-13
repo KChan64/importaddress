@@ -7,9 +7,15 @@ import codecs
 from binascii import hexlify
 from os.path import exists
 
+<<<<<<< HEAD
 path = "bip32version.db"
 if not exists(path):
 	path = __file__[:-7] + "bip32version.db"
+=======
+path = __file__[:-7]+"data/bip32version.db"
+if not exists(pat):
+	path = "./data/bip32version.db"
+>>>>>>> parent of e65fac6... Update fver.py
 	
 connection = sqlite3.connect(path)
 
