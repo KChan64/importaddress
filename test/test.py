@@ -1,6 +1,6 @@
 import unittest
-from hdprotocol import serialize
-from address import P2PKH, P2SH, P2WPKHoP2SH, P2WSHoP2SH, P2WPKH, P2WSH
+from importaddress.hdprotocol import serialize
+from importaddress.address import P2PKH, P2SH, P2WPKHoP2SH, P2WSHoP2SH, P2WPKH, P2WSH
 from collections import OrderedDict
 
 words = "record pencil flock congress slim antenna tongue engage swamp soup stumble uniform collect surface neck snow celery goddess conduct cycle crowd smile secret panel"
