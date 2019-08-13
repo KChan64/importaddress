@@ -8,7 +8,7 @@ from binascii import hexlify
 from os.path import exists
 
 path = __file__[:-7]+"data/bip32version.db"
-if not exists(pat):
+if not exists(path):
 	path = "./data/bip32version.db"
 	
 connection = sqlite3.connect(path)
