@@ -61,20 +61,20 @@ class test(unittest.TestCase):
 							cointype = "bitcoins", extend_key = True)
 		bip49 = bip49.generate(2).raw
 
-		self.assertEqual(bip49.get("Entropy") == "b3d45565178cbc13b91a52db39ff5ef6b2d9b464ee6c250c84bb1b63459970a4")
-		self.assertEqual(bip49.get("Mnemonic") == "record pencil flock congress slim antenna tongue engage swamp soup stumble uniform collect surface neck snow celery goddess conduct cycle crowd smile secret panel")
-		self.assertEqual(bip49.get("Seed") == "b0c32baffae7dc92b61706424ca70077f0b5252f1c75d37eeb3f783caec3bcb45a61f42cd2262398ea97bdf58be668d00266492ac4dddece59112928205970b6")
-		self.assertEqual(bip49.get("BIP32 Root Key") == ('Can not compute extended key because database lack of version bytes', 'Can not compute extended key because database lack of version bytes'))
-		self.assertEqual(bip49.get("Cointype") == "bitcoins")
-		self.assertEqual(bip49.get("Purpose") == "49")
-		self.assertEqual(bip49.get("Coin") == "0")
-		self.assertEqual(bip49.get("Account") == "0")
-		self.assertEqual(bip49.get("External/Internal") == "0")
-		self.assertEqual(bip49.get("Account Extended Private Key") == "Can not compute extended key because database lack of version bytes")
-		self.assertEqual(bip49.get("Account Extended Public Key") == "Can not compute extended key because database lack of version bytes")
-		self.assertEqual(bip49.get("BIP32 Derivation Path") == "m/49'/0'/0'/0")
-		self.assertEqual(bip49.get("BIP32 Extended Pri/Pub Key") == ('Can not compute extended key because database lack of version bytes', 'Can not compute extended key because database lack of version bytes'))
-		self.assertEqual(bip49.get("Derived Addresses") == [["m/49'/0'/0'/0/0", '34TcDG5AHzjouvzSYJPrJeGC2joeBjz3PW', '02341f91a84af51fd7a4a519294dea4484b5c093102f9ba0ad0c4f6ae923af0ff6', 'L3bnBv6MH4CroAvsQfJMhjXm4yVNRHCRmJn596TwtNNjax7k5mqr'], 
+		self.assertEqual(bip49.get("Entropy") , "b3d45565178cbc13b91a52db39ff5ef6b2d9b464ee6c250c84bb1b63459970a4")
+		self.assertEqual(bip49.get("Mnemonic") , "record pencil flock congress slim antenna tongue engage swamp soup stumble uniform collect surface neck snow celery goddess conduct cycle crowd smile secret panel")
+		self.assertEqual(bip49.get("Seed") , "b0c32baffae7dc92b61706424ca70077f0b5252f1c75d37eeb3f783caec3bcb45a61f42cd2262398ea97bdf58be668d00266492ac4dddece59112928205970b6")
+		self.assertEqual(bip49.get("BIP32 Root Key") , ('Can not compute extended key because database lack of version bytes', 'Can not compute extended key because database lack of version bytes'))
+		self.assertEqual(bip49.get("Cointype") , "bitcoins")
+		self.assertEqual(bip49.get("Purpose") , "49")
+		self.assertEqual(bip49.get("Coin") , "0")
+		self.assertEqual(bip49.get("Account") , "0")
+		self.assertEqual(bip49.get("External/Internal") , "0")
+		self.assertEqual(bip49.get("Account Extended Private Key") , "Can not compute extended key because database lack of version bytes")
+		self.assertEqual(bip49.get("Account Extended Public Key") , "Can not compute extended key because database lack of version bytes")
+		self.assertEqual(bip49.get("BIP32 Derivation Path") , "m/49'/0'/0'/0")
+		self.assertEqual(bip49.get("BIP32 Extended Pri/Pub Key") , ('Can not compute extended key because database lack of version bytes', 'Can not compute extended key because database lack of version bytes'))
+		self.assertEqual(bip49.get("Derived Addresses") , [["m/49'/0'/0'/0/0", '34TcDG5AHzjouvzSYJPrJeGC2joeBjz3PW', '02341f91a84af51fd7a4a519294dea4484b5c093102f9ba0ad0c4f6ae923af0ff6', 'L3bnBv6MH4CroAvsQfJMhjXm4yVNRHCRmJn596TwtNNjax7k5mqr'], 
 																	["m/49'/0'/0'/0/1", '3LK9ZUpNXYXvd2GBa5CRz5cUNGybD2j9gh', '03ffc10361d68e04e058a23c569ac768c8112070466119a32bca096304da91b0ac', 'KwK5DK8BxpUP8EjWxTHvLDRV8croVy7ELtMEnGQBTvLSyarxUZvq']])
 	
 	def test_using_bip__with_custom_version_bytes(self):
@@ -84,22 +84,22 @@ class test(unittest.TestCase):
 
 		bip44 = bip44.raw
 
-		self.assertEqual(bip44.get("Entropy") == "b3d45565178cbc13b91a52db39ff5ef6b2d9b464ee6c250c84bb1b63459970a4")
-		self.assertEqual(bip44.get("Mnemonic") == "record pencil flock congress slim antenna tongue engage swamp soup stumble uniform collect surface neck snow celery goddess conduct cycle crowd smile secret panel")
-		self.assertEqual(bip44.get("Seed") == "b0c32baffae7dc92b61706424ca70077f0b5252f1c75d37eeb3f783caec3bcb45a61f42cd2262398ea97bdf58be668d00266492ac4dddece59112928205970b6")
-		self.assertEqual(bip44.get("BIP32 Root Key") == ('xpub661MyMwAqRbcFXNLA4axKQTRBG4oBxsLKVCKM7bNc2fgvFMjYTEknFYQtwrDiGMB5gvHdCuvrqBEGcQ3Zuvd6eYx3cFgbnUw3HmPZzAyvRk', 
+		self.assertEqual(bip44.get("Entropy") , "b3d45565178cbc13b91a52db39ff5ef6b2d9b464ee6c250c84bb1b63459970a4")
+		self.assertEqual(bip44.get("Mnemonic") , "record pencil flock congress slim antenna tongue engage swamp soup stumble uniform collect surface neck snow celery goddess conduct cycle crowd smile secret panel")
+		self.assertEqual(bip44.get("Seed") , "b0c32baffae7dc92b61706424ca70077f0b5252f1c75d37eeb3f783caec3bcb45a61f42cd2262398ea97bdf58be668d00266492ac4dddece59112928205970b6")
+		self.assertEqual(bip44.get("BIP32 Root Key") , ('xpub661MyMwAqRbcFXNLA4axKQTRBG4oBxsLKVCKM7bNc2fgvFMjYTEknFYQtwrDiGMB5gvHdCuvrqBEGcQ3Zuvd6eYx3cFgbnUw3HmPZzAyvRk', 
 														 'xprv9s21ZrQH143K33Hs433wxGWgdEEJnW9UxGGiYjBm3h8i3T2azuvWETDw3pVmfaYvp34oJxZ6zT73iFJUwMsRkyGSaC3fUBs4tmCfa1cW62g'))
-		self.assertEqual(bip44.get("Cointype") == "bitcoins")
-		self.assertEqual(bip44.get("Purpose") == "49")
-		self.assertEqual(bip44.get("Coin") == "0")
-		self.assertEqual(bip44.get("Account") == "0")
-		self.assertEqual(bip44.get("External/Internal") == "0")
-		self.assertEqual(bip44.get("Account Extended Private Key") == "xpub6CUZvce9CMPYuhuDd4HFbDeEYQZSq72WcKMpQFc8tEobD9Zv93Mh1QzwvfZ6YRvVuav6B27VfyT4Sj4Q1G1Zbn8dtmNYGtAdngKYWG9TE9S")
-		self.assertEqual(bip44.get("Account Extended Public Key") == "xprv9yVDX77FMyqFhDpkX2kFE5hVzNixReJfF6SDbsCXKuGcLMEmbW3STcgU5ZZsUz4oxKXFmCFeVDFgaZ1zqgXAkaW37KivAFyXR4azWn6QKDY")
-		self.assertEqual(bip44.get("BIP32 Derivation Path") == "m/49'/0'/0'/0")
-		self.assertEqual(bip44.get("BIP32 Extended Pri/Pub Key") == ('xpub6FEobGTSLvSZoHiCUrd2oBPD8Q29e7fdjTDSa1UPstZRv9cbupSR8aQk1XuKcQtst9gQHZUTBqvkBTqrAqzg4Eg7v8X4iUWwm69GNuccJv2', 
+		self.assertEqual(bip44.get("Cointype") , "bitcoins")
+		self.assertEqual(bip44.get("Purpose") , "49")
+		self.assertEqual(bip44.get("Coin") , "0")
+		self.assertEqual(bip44.get("Account") , "0")
+		self.assertEqual(bip44.get("External/Internal") , "0")
+		self.assertEqual(bip44.get("Account Extended Private Key") , "xpub6CUZvce9CMPYuhuDd4HFbDeEYQZSq72WcKMpQFc8tEobD9Zv93Mh1QzwvfZ6YRvVuav6B27VfyT4Sj4Q1G1Zbn8dtmNYGtAdngKYWG9TE9S")
+		self.assertEqual(bip44.get("Account Extended Public Key") , "xprv9yVDX77FMyqFhDpkX2kFE5hVzNixReJfF6SDbsCXKuGcLMEmbW3STcgU5ZZsUz4oxKXFmCFeVDFgaZ1zqgXAkaW37KivAFyXR4azWn6QKDY")
+		self.assertEqual(bip44.get("BIP32 Derivation Path") , "m/49'/0'/0'/0")
+		self.assertEqual(bip44.get("BIP32 Extended Pri/Pub Key") , ('xpub6FEobGTSLvSZoHiCUrd2oBPD8Q29e7fdjTDSa1UPstZRv9cbupSR8aQk1XuKcQtst9gQHZUTBqvkBTqrAqzg4Eg7v8X4iUWwm69GNuccJv2', 
 																	 'xprvA2FTBkvYWYtGaodjNq62S3SUaNBfEewnNEHqmd4nKZ2T3MHTNH8Aan6GARAgABoGD46kd8yvxrWRyekRumNGsreRVVctezMKouRBmaBoCSb'))
-		self.assertEqual(bip44.get("Derived Addresses") == [
+		self.assertEqual(bip44.get("Derived Addresses") , [
 				["m/44'/0'/0'/0/0", '1C8ms58sg9a1dQKrTKwt2wP6eHGBJmnnEN', '0201192c11fdba5f77dbee8af32f2fe038981ae4ac93a360fd698cd9f5a0def3e1', 'L291freeUv6GGXDD23UkvuviTTiKsdgHZ5ViNVYMFTHQZoSiykYt'], 
 				["m/44'/0'/0'/0/1", '1PU2yxbUuxs2Va8jcnE2jhu2N6pvZXHuEU', '03fff7a05dda6e6b688dab2d534cc1f46cad271331dc67827cb0bf12007a64dd6e', 'L41ihSongCBiD9YCeKXWUidSmKPqGHEdhaHktsWHG6j1SFn46kWr'], 
 				["m/44'/0'/0'/0/2", '15Qry7hqCjqpaJ3pEoSnmFmhP3KhHwbthR', '0219b78a84b266c70e8dcd060db655f36f3ea4f442b59158ee09bc7847e41a2135', 'Kxef5HZq9TUxW3PmHtHRe5XB7khqeTN4MC9NWsCMUNeZ7wCB1AmR'], 

@@ -7,7 +7,7 @@ import codecs
 from binascii import hexlify
 from os.path import exists
 
-path = __file__[:-7]+"data/bip32version.db"
+path = __file__[:-7]+"data\\bip32version.db"
 if not exists(path):
 	path = "./data/bip32version.db"
 	
