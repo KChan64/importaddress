@@ -370,9 +370,10 @@ class Transition(object):
 		self.details = details
 		self.__dict__.update({ re.sub(r"\W", "_", k) :v for k,v in details.items()})
 
-	@property
-	def to_csv(self):
-		with open('{}.csv'.format(self.Entropy), 'w+', newline='') as csvfile:
+	
+	def to_csv(self, filename = None):
+		filename = filename if filename else self.Entropy
+		with open('{}.csv'.format(filename), 'w+', newline='') as csvfile:
 			fieldnames = ['Path', 'Address', 'Public Key', 'Wallet import form']
 			writer = csv.DictWriter(csvfile, fieldnames=fieldnames)
 
@@ -383,9 +384,10 @@ class Transition(object):
 								 "Public Key": pub,
 								 "Wallet import form": wif})
 
-	@property
-	def to_json(self):
-		with open('{}.json'.format(self.Entropy), "w+") as fd:
+	
+	def to_json(self, filename = None):
+		filename = filename if filename else self.Entropy
+		with open('{}.json'.format(filename), "w+") as fd:
 			return json.dump(self.details, fd, indent=4)
 
 

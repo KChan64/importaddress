@@ -248,11 +248,11 @@ class test(unittest.TestCase):
 
 	def test_to_json(self):
 		custom = serialize(path="m/2'/0", entropy=entropy,
-							custom_addr_type = P2WPKH).generate(40, raw = False).to_json
+							custom_addr_type = P2WPKH).generate(40, raw = False).to_json()
 
 	def test_to_csv(self):
 		custom = serialize(path="m/2'/0", entropy=entropy,
-							custom_addr_type = P2WPKH).generate(40, raw = False).to_csv
+							custom_addr_type = P2WPKH).generate(40, raw = False).to_csv()
 
 	def test_address(self):
 		# Ignoring redeemscript as this is not a P2SH script. Means only P2SH need redeemscript
