@@ -46,7 +46,8 @@ v 		= {"vpub":"045f1cf6", "vprv":"045f18bc"}
 v_up 	= {"Vpub":"02575483", "Vprv":"02575048"}
 
 # https://github.com/satoshilabs/slips/blob/master/slip-0044.md
-with open(__file__[:-11] + "/data/slip-0044.md", "r+") as fd:
+to_path = re.findall(r"(.+?)cointype.py",__file__)[0]
+with open(to_path + "data/slip-0044.md", "r+") as fd:
 	content = fd.read()
 
 cointypes = {tup[-1].strip().lower(): tup[0] for tup in re.findall(r"(\d{1,8})\W{0,7}(\dx\w{8}).{12}\[{0,1}([^\]\n(]+)", content)}
