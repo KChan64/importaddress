@@ -12,7 +12,7 @@ with io.open(readme_path, encoding="utf-8") as read_file:
     long_description = read_file.read()
 
 setup(name="importaddress",
-      version="0.1",
+      version="1.1",
       description="Bitcoin addresses generator by using HD protocol",
       long_description=long_description,
       long_description_content_type='text/markdown',
@@ -20,7 +20,7 @@ setup(name="importaddress",
       author_email="kcorlidy@outlook.com",
       url="https://github.com/kcorlidy/importaddress",
       packages=["importaddress"],
-      package_data={"importaddress": ["data/*.db"]},
+      package_data={"importaddress": ["data/*.md"]},
       license="Apache",
       python_requires=">2.6, >3.3",
       classifiers=[

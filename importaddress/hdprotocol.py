@@ -10,19 +10,11 @@ from collections import OrderedDict
 from multiprocessing import Pool as process
 from functools import partial
 
-try:
-		
-	from func import  hexlify, MoNscript
-	from bip32 import BIP32Key, BIP32_HARDEN
-	from address import P2PKH, P2SH, P2WPKHoP2SH, P2WSHoP2SH, P2WPKH, P2WSH
-	from fver import query_path, query_coin_num
 
-except Exception as e:
-
-	from .bip32 import BIP32Key, BIP32_HARDEN
-	from .func import hexlify, MoNscript
-	from .address import P2PKH, P2SH, P2WPKHoP2SH, P2WSHoP2SH, P2WPKH, P2WSH
-	from .fver import query_path, query_coin_num
+from .bip32 import BIP32Key, BIP32_HARDEN
+from .func import hexlify, MoNscript
+from .address import P2PKH, P2SH, P2WPKHoP2SH, P2WSHoP2SH, P2WPKH, P2WSH
+from .fver import query_path, query_coin_num
 
 class bip39(object):
 
@@ -102,7 +94,7 @@ class serialize(object):
 		if isinstance(self.cointype, str) and not self.custom_addr_type:
 			# using coin name
 			path_from_db = query_path(cointype = self.cointype, testnet = self.testnet, bip = self.bip)
-			vers_from_db = query_coin_num(cointype = self.cointype, testnet = self.testnet, bip = self.bip)
+			vers_from_db = query_coin_num(cointype = self.cointype, testnet = self.testnet)
 			if self.warning:
 				if path_from_db:
 					if not re.findall(path_from_db, self.showpath(self.path)):
@@ -405,61 +397,3 @@ if __name__ == '__main__':
 	seed = "b0c32baffae7dc92b61706424ca70077f0b5252f1c75d37eeb3f783caec3bcb45a61f42cd2262398ea97bdf58be668d00266492ac4dddece59112928205970b6"
 	assert bip39.to_mnemonic(entropy) == words
 	assert bip39.to_seed(words) == unhexlify(seed)
-
-	# Giving right cointype and path
-	# default cointype is bitcoin
-	# Be careful, you have to indicate you are using testnet if you want, otherwise the output address will be wrong
-	bip44 = serialize(path="m/44'/0'/0'/0", entropy=entropy, cointype = "bitcoin")
-	
-	# Giving wrong cointype but right path, functions will choose your path first. 
-	# If cointype unknown, extended key will be empty. specify version bytes cointype = ("0488b21e", "0488ade4")
-	bip44_2 = serialize(path="m/44'/0'/0'/0", entropy=entropy, cointype = "bitcoins")
-
-	bip44_3 = serialize(path="m/44'/0'/0'/0", entropy=entropy, cointype = ("0488b21e", "0488ade4"))
-	
-	assert (
-		bip44.generate(20) 
-		== bip44_2.generate(20) 
-		== bip44_3.generate(20))
-
-	# Only need one, sf -> start from
-	assert(bip44.generate(n = 3, sf = 2, raw = False).Derived_Addresses == bip44.generate(n = 3, sf = 2) == [[
-		"m/44'/0'/0'/0/2",
-		'15Qry7hqCjqpaJ3pEoSnmFmhP3KhHwbthR',
-		'0219b78a84b266c70e8dcd060db655f36f3ea4f442b59158ee09bc7847e41a2135',
-		'Kxef5HZq9TUxW3PmHtHRe5XB7khqeTN4MC9NWsCMUNeZ7wCB1AmR']])
-
-	# Using HD protocol to generate custom address type. purpose can not be 44 49 84.
-	custom = serialize(path="m/2'/0", entropy=entropy, cointype = "bitcoin", custom_addr_type = P2WPKH)
-	assert (custom.generate(5, raw = False).Derived_Addresses == [["m/2'/0/0",
-                        'bc1qfpul4zxrc7z35ztxmkycr3298qspsqcg5zddls',
-                        '0294e050ca9ad7cee27b87729d2a85336c72782164385b2e03a5d82925328679c2',
-                        'KzP7tCafv8xM1RFbnVAjAf14mGj9jBspYFqZ7Bp8Q7JbZyEnG7mG'],
-                       ["m/2'/0/1",
-                        'bc1qcdfwngf7fczfty67dgsx4c2ghl8uqg74ss5xg3',
-                        '033588fa3711f45835c778d46f8b09f6875ecfa64b42d619eb1eeb77e7901da004',
-                        'L44zErFTKZZRCpqPEBYF9XiMzLNXGKeazFd987tEBtbETjmagjVu'],
-                       ["m/2'/0/2",
-                        'bc1q2v6jakyjzjgtsgdy5rgvyzm4qv0megczrl3nzp',
-                        '02099e466251b155cd0533c16ac088c157f61305af8188969a419d125509250cdb',
-                        'KxzmGnjeJYVp4T2XKJTGVcpnN1yCvhUmoZEjWKdm8f41f1KKTaaN'],
-                       ["m/2'/0/3",
-                        'bc1qp7wqm426kl459va84nkh4hu9hterdnf6s0fpgp',
-                        '02cd2a29e800284cdd7140dca08a43d836a389258a5f9f0afc44cb1c2281051f25',
-                        'KyiNkDDErcpm13pQTQAXwmJdwsFxkNPEVWLjjcuJCTFwKPsg3A5q'],
-                       ["m/2'/0/4",
-                        'bc1q46wyry0j7mmphsy905d7e8lx7frp7wh4yq7cw6',
-                        '03a624c0a49da54de87610c2ce4acabaa361eec92892fb7b3b61a8cdd627dbc090',
-                        'L2Z77hYwweAsFNpq4hd3G83AoGX8wLnWXsxmEpM9hLUsbaGPztBL']])
-
-	custom2 = serialize(path="m/4'/0", entropy=entropy, custom_addr_type = P2WPKHoP2SH, testnet = True)
-	# origin, importmulti = custom2.to_importmulti(2) # whether test succeeded or not, need bitcoin-core
-
-	# multisig 16/16 seems to long.
-	custom3 = serialize(path="m/9'/0", entropy=entropy, custom_addr_type = P2WSH, testnet = True)
-	result = custom3.generate_multisig(mon = (15,15))
-	origin, importmulti2 = custom3.to_importmulti(mon = (15,15))
-	assert result == origin
-	# test importmulti succeeded `tb1q0zwle25cyned4ywwdnhxufqrtazy26vcat7353jj3raez002w49qdez7dz`
-	# In `4bd3c02eb3934aa363d5823859559c4da1d38390501b196a44726ab3e7b0af7b`
-	# Out `0ed2b81937bb906f66196f9a209fc6c3dc3d46c5a07853dea87010e7faa8af81`
