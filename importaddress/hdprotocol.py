@@ -224,8 +224,11 @@ class serialize(object):
 		main_path = self.showpath(self.path)
 
 		info = partial(self.info, main_path = main_path)
-		with process(poolsize) as pool:
-			result = pool.map(info, range(sf, n))
+		if poolsize > 1:
+			with process(poolsize) as pool:
+				result = pool.map(info, range(sf, n))
+		else:
+			result = list(map(info, range(sf, n)))
 
 		if raw:
 			return result
@@ -249,8 +252,11 @@ class serialize(object):
 
 			info = partial(self.info_multisig, main_path = main_path)
 
-			with process(poolsize) as pool:
-				result = pool.map(info, range(sf, n))
+			if poolsize > 1:
+				with process(poolsize) as pool:
+					result = pool.map(info, range(sf, n))
+			else:
+				result = list(map(info, range(sf, n)))
 
 			path = main_path + "{sf}~{n}".format(sf=sf, n=n)
 			key = [r[0] for r in result]
@@ -324,8 +330,11 @@ class serialize(object):
 			main_path = self.showpath(self.path)
 
 			info = partial(self.info, main_path = main_path, extra = True)
-			with process(poolsize) as pool:
-				results = pool.map(info, range(sf, n))
+			if poolsize > 1:
+				with process(poolsize) as pool:
+					results = pool.map(info, range(sf, n))
+			else:
+				results = list(map(info, range(sf, n)))
 
 			for result in results:
 				__format["scriptPubKey"]["address"] = result[1]
