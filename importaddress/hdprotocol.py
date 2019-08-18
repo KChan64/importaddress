@@ -386,14 +386,3 @@ class Transition(object):
 	@property
 	def raw(self):
 		return self.details
-
-
-
-if __name__ == '__main__':
-	from pprint import pprint
-	from time import time
-	words = "record pencil flock congress slim antenna tongue engage swamp soup stumble uniform collect surface neck snow celery goddess conduct cycle crowd smile secret panel"
-	entropy = "b3d45565178cbc13b91a52db39ff5ef6b2d9b464ee6c250c84bb1b63459970a4"
-	seed = "b0c32baffae7dc92b61706424ca70077f0b5252f1c75d37eeb3f783caec3bcb45a61f42cd2262398ea97bdf58be668d00266492ac4dddece59112928205970b6"
-	assert bip39.to_mnemonic(entropy) == words
-	assert bip39.to_seed(words) == unhexlify(seed)

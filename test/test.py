@@ -3,11 +3,13 @@ from importaddress.func import MoNscript
 from importaddress.hdprotocol import serialize
 from importaddress.address import P2PKH, P2SH, P2WPKHoP2SH, P2WSHoP2SH, P2WPKH, P2WSH
 from collections import OrderedDict
+from binascii import unhexlify
 
 words = "record pencil flock congress slim antenna tongue engage swamp soup stumble uniform collect surface neck snow celery goddess conduct cycle crowd smile secret panel"
 entropy = "b3d45565178cbc13b91a52db39ff5ef6b2d9b464ee6c250c84bb1b63459970a4"
 seed = "b0c32baffae7dc92b61706424ca70077f0b5252f1c75d37eeb3f783caec3bcb45a61f42cd2262398ea97bdf58be668d00266492ac4dddece59112928205970b6"
 extendedkey = "xprv9s21ZrQH143K33Hs433wxGWgdEEJnW9UxGGiYjBm3h8i3T2azuvWETDw3khwd6CafxUHiko1C5RmfArFgFS5LnxnXbwJkTft7Rt9ozKMJoX"
+extendedkey_publickey = "xpub661MyMwAqRbcFXNLA4axKQTRBG4oBxsLKVCKM7bNc2fgvFMjYTEknFYQu1e3kkhXDmWoDQg2fCrWKgrGq2MyWprc6CN3KWg7pd5uL2i4JHv"
 extendedkey_testnet = "tprv8ZgxMBicQKsPdrXPibuT7v8fwMeX22BVHpBqR9cDXfdBq3mfzHGFkCbNxvsbdTau3Q14irQmMS1a82PzoTn29rEP4F9cQpPw2XdaFe8TVxZ"
 
 class test(unittest.TestCase):
@@ -293,6 +295,7 @@ class test(unittest.TestCase):
 		redeemscript, ScriptPubKey = clss.redeemscript, clss.scriptpubkey
 		self.assertEqual(redeemscript , "001479091972186c449eb1ded22b78e40d009bdf0089")
 		self.assertEqual(ScriptPubKey , "a9144733f37cf4db86fbc2efed2500b4f4e49f31202387")
+		self.assertEqual(P2WPKHoP2SH(key).address, "38BW8nqpHSWpkf5sXrQd2xYwvnPJwP59ic")
 		
 		key = "21026dccc749adc2a9d0d89497ac511f760f45c47dc5ed9cf352a58ac706453880aeadab210255a9626aebf5e29c0e6538428ba0d1dcf6ca98ffdf086aa8ced5e0d0215ea465ac"
 		self.assertEqual(P2WSH(key).scriptpubkey , "00205d1b56b63d714eebe542309525f484b7e9d6f686b3781b6f61ef925d66d6f6a0")
@@ -311,18 +314,25 @@ class test(unittest.TestCase):
 		self.assertEqual(P2WSHoP2SH("3JXRVxhrk2o9f4w3cQchBLwUeegJBj6BEp").scriptpubkey  , "a914b8a9a8ba8cf965b7df6b05afd948e53c351b2c0d87")
 		# self.assertEqual(P2SH() They base on P2SH function, so pass
 		self.assertEqual(P2PKH("1LBDY5Sugh4i2XS6StMKA1ZZiyN4a59Sdf").scriptpubkey , "76a914d259038d23c4a8f9dd4eaaf92316d191f18d963788ac")
-		
-		
+	
 		self.assertEqual(P2WPKH("tb1qm3e067l5aadlmr07qg05rudd05m3vmw2606rzj").scriptpubkey , "0014dc72fd7bf4ef5bfd8dfe021f41f1ad7d37166dca")
 		
 		# Data from 9988eaabbcf5976d13f91c28604f921239ed3fadf4592d1a0a0e288b419a78a4
 		key = "5221035c8e83fa4ca1d74d10f122daaac69b006e5c02a1594b78907881190500b1f22a2102c1235301c06e94bdd44c248e6c824b58fafea3ceee4db2857402e322486046842103e46359fd20b25a7be466984f156084be0dead32e4e99cec2e0f7c9ad4863daaa53ae"
 		self.assertEqual(P2WSH(key).scriptpubkey , "0020d3124de88d90949cf90ed655bfd306f00d9473387eedc59d819d51bc6880f29d")
 		self.assertEqual(P2WSH("bc1qm2pz5342a0n3ctv9hm6s568zeye8cw7j90j0nmjdwkrcy78qs2nsfyp945").scriptpubkey , "0020da822a46aaebe71c2d85bef50a68e2c9327c3bd22be4f9ee4d75878278e082a7")
-	
+		self.assertEqual(P2WSH("tb1q0zwle25cyned4ywwdnhxufqrtazy26vcat7353jj3raez002w49qdez7dz").scriptpubkey, "0020789dfcaa9824f2da91ce6cee6e24035f44456998eafd1a465288fb913dea754a")
+		# hex-bytes input
+		key = "039e84846f40570adc5cef6904e10d9f5a5dadb9f2afd07cc9aad188d769c50b46"
+		self.assertEqual(P2PKH(unhexlify(key)).scriptpubkey , "76a914d259038d23c4a8f9dd4eaaf92316d191f18d963788ac")
 	
 	def test_fromExtendedKey(self):
 		bip44 = serialize(path="m/44'/0'/0'/0", extended_key = (extendedkey, False)).generate(5) # ispublic False
+		try:
+			_bip44 = serialize(path="m/44'/0'/0'/0", extended_key = (extendedkey_publickey, True))
+		except Exception as e:
+			err = e
+		
 		test_data = [
 					["m/44'/0'/0'/0/0","1C8ms58sg9a1dQKrTKwt2wP6eHGBJmnnEN","0201192c11fdba5f77dbee8af32f2fe038981ae4ac93a360fd698cd9f5a0def3e1","L291freeUv6GGXDD23UkvuviTTiKsdgHZ5ViNVYMFTHQZoSiykYt"],
 					["m/44'/0'/0'/0/1","1PU2yxbUuxs2Va8jcnE2jhu2N6pvZXHuEU","03fff7a05dda6e6b688dab2d534cc1f46cad271331dc67827cb0bf12007a64dd6e","L41ihSongCBiD9YCeKXWUidSmKPqGHEdhaHktsWHG6j1SFn46kWr"],
@@ -331,7 +341,20 @@ class test(unittest.TestCase):
 					["m/44'/0'/0'/0/4","139KkfwHytbBEQVW1GBCqJsJXud9P1dsHm","027bd4373aa42fdee6e064f7f8363cef796017ac79b27c72028dd349b50d36c3b9","L1SVV5jGhKbX4aZ5bejZVCXS51zK6b4TUGRneUewSjQ6ZHUQSoKt"]
 					]
 		self.assertEqual(bip44, test_data)
+		self.assertIsNotNone(err, test_data)
 
+	
+	def test_poolsize(self):
+		bip44 = serialize(path="m/44'/0'/0'/0", extended_key = (extendedkey, False)).generate(5, poolsize = 1)
+		test_data = [
+					["m/44'/0'/0'/0/0","1C8ms58sg9a1dQKrTKwt2wP6eHGBJmnnEN","0201192c11fdba5f77dbee8af32f2fe038981ae4ac93a360fd698cd9f5a0def3e1","L291freeUv6GGXDD23UkvuviTTiKsdgHZ5ViNVYMFTHQZoSiykYt"],
+					["m/44'/0'/0'/0/1","1PU2yxbUuxs2Va8jcnE2jhu2N6pvZXHuEU","03fff7a05dda6e6b688dab2d534cc1f46cad271331dc67827cb0bf12007a64dd6e","L41ihSongCBiD9YCeKXWUidSmKPqGHEdhaHktsWHG6j1SFn46kWr"],
+					["m/44'/0'/0'/0/2","15Qry7hqCjqpaJ3pEoSnmFmhP3KhHwbthR","0219b78a84b266c70e8dcd060db655f36f3ea4f442b59158ee09bc7847e41a2135","Kxef5HZq9TUxW3PmHtHRe5XB7khqeTN4MC9NWsCMUNeZ7wCB1AmR"],
+					["m/44'/0'/0'/0/3","1MBgfJ2YHcaTk1WbuMgJzBYfJHDiK7grP3","038ef95d20f507d083b00bec9aa0f595046f1019dd0c1fa5e3e69b5b2eda78657d","KzdEGEWcWQkLb5RSsAMiopdKgcSTBP1bzp2Fdr9kERjryNxcGWxZ"],
+					["m/44'/0'/0'/0/4","139KkfwHytbBEQVW1GBCqJsJXud9P1dsHm","027bd4373aa42fdee6e064f7f8363cef796017ac79b27c72028dd349b50d36c3b9","L1SVV5jGhKbX4aZ5bejZVCXS51zK6b4TUGRneUewSjQ6ZHUQSoKt"]
+					]
+		self.assertEqual(bip44, test_data)
+	
 if __name__ == '__main__':
 
 	unittest.main()

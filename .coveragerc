@@ -1,8 +1,0 @@
-# -*- conf -*-
-
-[run]
-include =
- importaddress/*
-omit =
- test/test.py
- test/speed.py
