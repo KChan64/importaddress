@@ -16,13 +16,13 @@ __base58_radix = len(__base58_alphabet)
 def __string_to_int(data):
     "Convert string of bytes Python integer, MSB"
     val = 0
-   
+
     # Python 2.x compatibility
-    if type(data) == str:
+    if isinstance(data, str):
         data = bytearray(data)
 
     for (i, c) in enumerate(data[::-1]):
-        val += (256**i)*c
+        val += (256**i) * c
     return val
 
 
@@ -37,14 +37,14 @@ def encode(data):
         enc = __base58_alphabet[val] + enc
 
     # Pad for leading zeroes
-    n = len(data)-len(data.lstrip(b'\0'))
-    return __base58_alphabet[0]*n + enc
+    n = len(data) - len(data.lstrip(b'\0'))
+    return __base58_alphabet[0] * n + enc
 
 
 def check_encode(raw):
     "Encode raw bytes into Bitcoin base58 string with checksum"
     chk = sha256(sha256(raw).digest()).digest()[:4]
-    return encode(raw+chk)
+    return encode(raw + chk)
 
 
 def decode(data):
@@ -52,10 +52,10 @@ def decode(data):
     # Python 2.x compatability
     x00 = re.findall(r"^[1]+", data)
     x00 = len(x00[0]) if x00 else 0
-    
+
     if bytes != str:
         data = bytes(data, 'ascii')
-    
+
     val = 0
     for (i, c) in enumerate(data[::-1]):
         val += __base58_alphabet_bytes.find(c) * (__base58_radix**i)
@@ -67,10 +67,10 @@ def decode(data):
     if val:
         dec.append(val)
 
-    return b"\x00"*x00 + bytes(dec[::-1])
+    return b"\x00" * x00 + bytes(dec[::-1])
 
 
-def check_decode(enc, need_prefix = False):
+def check_decode(enc, need_prefix=False):
     "Decode bytes from Bitcoin base58 string and test checksum"
     dec = decode(enc)
     raw, chk = dec[:-4], dec[-4:]
