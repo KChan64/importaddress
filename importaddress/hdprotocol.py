@@ -113,7 +113,7 @@ class serialize(object):
                         warnings.warn("Path or Cointype error, the path should start with `{}` if your cointype is `{}`(testnet is {})".format(path_from_db, self.cointype, self.testnet), stacklevel=2)
                 else:
                     warnings.warn("Cointype unknown".format(path_from_db, self.cointype, self.testnet))
-        return vers_from_db
+            return vers_from_db
 
     def correct_path(self, vers_from_db):
         if not self.adapt_path:
