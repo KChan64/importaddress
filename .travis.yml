@@ -1,4 +1,4 @@
-sudo: false
+sudo: true
 dist: xenial
 language: python
 cache: pip
@@ -7,33 +7,29 @@ before_cache:
 matrix:
   include:
       - python: 3.4
-        env: ENV=py34
+        env: TOX_ENV=py34
       - python: 3.5
-        env: ENV=py35
+        env: TOX_ENV=py35
       - python: 3.6
-        env: ENV=py36
+        env: TOX_ENV=py36
       - python: 3.7
-        env: ENV=py37
-        dist: xenial
-        sudo: true
-      - python: pypy
-        env: ENV=pypy
+        env: TOX_ENV=py37
       - python: pypy3
-        env: ENV=pypy3
+        env: TOX_ENV=pypy3
   
   allow_failures:
     - python: "pypy3"
-    - python: "pypy"
 
 install:
-  - python setup.py install
-  - pip install codecov
+  - pip install .
+  - pip install codecov tox
 
 script:
-  # - tox -e $ENV
-  # - tox -e speed
-  - cd test
-  - coverage run test.py
+  - tox -e $TOX_ENV,speed -v 2
+  - |
+    if [ $TOX_ENV == "py37" ]; then
+      tox -e coverage, codechecks
+    fi
 
 after_success:
   - codecov
