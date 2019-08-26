@@ -277,13 +277,13 @@ def test_empty_entropy_and_mnemonic():
 	with pytest.raises(Exception):
 		assert serialize(path="m/44'/0'/0'/0")
 
-def test_custom_address_type_with_illegal_purpose():
+def test_custom_address_type_with_illegal_purpose(entropy):
 	with pytest.raises(Exception):
-		assert serialize(path="m/44'/0'/0'/0", custom_addr_type=P2WPKH)
+		assert serialize(path="m/44'/0'/0'/0", entropy=entropy, custom_addr_type=P2WPKH)
 
-def test_custom_address_type_with_illegal_address_type():
+def test_custom_address_type_with_illegal_address_type(entropy):
 	with pytest.raises(Exception):
-		assert serialize(path="m/44'/0'/0'/0", custom_addr_type="P2WPKH")
+		assert serialize(path="m/44'/0'/0'/0", entropy=entropy, custom_addr_type="P2WPKH").generate(4, poolsize=1)
 
 def test_using_Mnemonic(words):
 	bip44 = serialize(path="m/44'/0'/0'/0", mnemonic=words).generate(2, poolsize = 1)

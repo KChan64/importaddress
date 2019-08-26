@@ -12,7 +12,7 @@ with io.open(readme_path, encoding="utf-8") as read_file:
     long_description = read_file.read()
 
 setup(name="importaddress",
-      version="1.1beta",
+      version="1.2",
       description="Bitcoin addresses generator by using HD protocol",
       long_description=long_description,
       long_description_content_type='text/markdown',
