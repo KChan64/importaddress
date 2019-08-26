@@ -28,7 +28,7 @@ script:
   - tox -e $TOX_ENV,speed -v 2
   - |
     if [ $TOX_ENV == "py37" ]; then
-      tox -e coverage, codechecks
+      tox -e coverage_unittest,codechecks
     fi
 
 after_success:

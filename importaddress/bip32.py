@@ -253,16 +253,19 @@ class BIP32Key(object):
         raw = addressversion + self.k.to_string() + b'\x01'  # Always compressed
         return check_encode(raw)
 
-    def ExtendedKey(self, private=True, encoded=True, bip=44, cointype="bitcoin"):
+    def ExtendedKey(self, private=True, encoded=True, bip=44, cointype="bitcoin", warning=True):
         "Return extended private or public key as string, optionally Base58 encoded"
+
+        msg = "Can not compute extended key because database lacks of version bytes"
         if self.public is True and private is True:
             raise Exception("Cannot export an extended private key from a public-only deterministic key")
 
         if isinstance(cointype, str):
             query = query_ver(private=private, bip=bip, cointype=cointype, testnet=self.testnet)
             if not query:
-                warnings.warn("Can not find suitable version from database, you can specify it through parameter cointype = (pri, pub)")
-                return "Can not compute extended key because database lack of version bytes"
+                if warning:
+                    warnings.warn("Can not find suitable version from database, you can specify it through parameter cointype = (pri, pub)")
+                return msg
             version = query[0]
 
         elif isinstance(cointype, (tuple, list)) and len(cointype) == 2:
@@ -271,7 +274,7 @@ class BIP32Key(object):
             version = codecs.decode(version, "hex")
 
         else:
-            return "Can not compute extended key because database lack of version bytes"
+            return msg
 
         depth = bytes(bytearray([self.depth]))
         fpr = self.parent_fpr

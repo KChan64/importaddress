@@ -11,10 +11,10 @@ from functools import partial
 
 
 from .bip32 import BIP32Key
-from .func import hexlify, MoNscript
+from .func import hexlify, MoNscript, hybridmethod
 from .address import P2PKH, P2SH, P2WPKHoP2SH, P2WSHoP2SH, P2WPKH, P2WSH
 from .fver import query_path, query_coin_num
-
+from .custom_error import ParameterError, EmptyParamError, AddressTypeError
 
 class bip39(object):
 
@@ -22,20 +22,20 @@ class bip39(object):
         self.entropy = entropy
         self.words = words
 
-    @classmethod
-    def to_mnemonic(self, entropy="", lang="english"):
-        entropy = entropy if entropy else self.entropy
+    @hybridmethod
+    def to_mnemonic(cls, entropy="", lang="english"):
+        entropy = entropy if entropy else cls.entropy
         return Mnemonic(lang).to_mnemonic(
             unhexlify(entropy if isinstance(entropy, str) else entropy)
         )
 
-    @classmethod
-    def generate(self, strength=256, lang="english"):
+    @hybridmethod
+    def generate(cls, strength=256, lang="english"):
         return bip39(words=Mnemonic(lang).generate(strength))
 
-    @classmethod
-    def to_seed(self, words="", passphrase=""):
-        return Mnemonic.to_seed(words if words else self.words, passphrase=passphrase)
+    @hybridmethod
+    def to_seed(cls, words="", passphrase=""):
+        return Mnemonic.to_seed(words if words else cls.words, passphrase=passphrase)
 
 
 class serialize(object):
@@ -63,7 +63,7 @@ class serialize(object):
     def initialize(self):
         # Priority: Seed > Mnemonic > Entropy
         if self.mnemonic and not self._entropy:
-            self.seed = bip39(words=self.mnemonic).to_seed(self.passphrase)
+            self.seed = bip39.to_seed(words=self.mnemonic, passphrase=self.passphrase)
 
         elif self._entropy:
             words = bip39.to_mnemonic(entropy=self._entropy, lang=self.lang)
@@ -74,7 +74,7 @@ class serialize(object):
             self.seed = None
 
         else:
-            raise AttributeError("If you must specify entropy or mnemonic.")
+            raise EmptyParamError("If you must specify entropy or mnemonic.", None, "b3d45...70a4/reco...ret panel")
 
         # checking path
         self.usingbip = True if re.findall(r"(m\/(44|49|84)')(\/\w+'){2}(\/0)", self.path) else False
@@ -100,7 +100,7 @@ class serialize(object):
             warnings.warn("Are you using custom module? Specify your address type! Now your address type is {}.".format(self.custom_addr_type))
 
         elif self.usingbip and self.custom_addr_type and self.warning:
-            raise RuntimeError("Are you using custom module? Purpose can not be {}.".format(self.bip))
+            raise ParameterError("Are you using custom module? Purpose can not be {}.".format(self.bip), self.showpath(self.path), "m/2'/0(m/purpose/coin)")
 
     def check_version_byte(self):
         if isinstance(self.cointype, str) and not self.custom_addr_type:
@@ -131,7 +131,7 @@ class serialize(object):
             k = BIP32Key.fromExtendedKey(xkey, public=ispublic, testnet=self.testnet)
 
         else:
-            raise RuntimeError("Lack of entropy/mnemonic/extendedkey")
+            raise ParameterError("Lack of entropy/mnemonic/extendedkey", None, "entropy/mnemonic/extendedkey")
 
         self.set_bip32_root_key(k)
 
@@ -164,12 +164,9 @@ class serialize(object):
     def index(self, n):
         return self.k.ChildKey(n)
 
-    def root_key2seed(root_key):
-        raise NotImplementedError
-
     def check_addr_type(self, addr_type):
         if addr_type not in [P2PKH, P2SH, P2WPKHoP2SH, P2WSHoP2SH, P2WPKH, P2WSH]:
-            raise RuntimeError("You have to use P2PKH, P2SH, P2WPKHoP2SH, P2WSHoP2SH, P2WPKH, P2WSH. They inside `address.py`")
+            raise AddressTypeError("You have to use P2PKH, P2SH, P2WPKHoP2SH, P2WSHoP2SH, P2WPKH, P2WSH. They inside `address.py`", self.custom_addr_type, "importaddress.address.P2WPKH, ...")
 
     def pk_bytes(self, k=None, addr_type=None):
         # In fact, this function used to reduce duplicate code
@@ -212,8 +209,8 @@ class serialize(object):
 
     def exkey(self, k=None, encoded=True):
         k = k if k else self.k
-        return (k.ExtendedKey(bip=self.bip, cointype=self.cointype, encoded=encoded),
-                k.ExtendedKey(private=False, bip=self.bip, cointype=self.cointype, encoded=encoded))
+        return (k.ExtendedKey(bip=self.bip, cointype=self.cointype, encoded=encoded, warning=self.warning),
+                k.ExtendedKey(private=False, bip=self.bip, cointype=self.cointype, encoded=encoded, warning=self.warning))
 
     def key(self, k=None):
         key = (self.k.WalletImportFormat(), self.k.PublicKey()) if not k else (k.WalletImportFormat(), k.PublicKey())
@@ -285,7 +282,7 @@ class serialize(object):
 
             return results
 
-        raise RuntimeError("bip44/bip49/bip84 should not be used to create custom address.")
+        raise ParameterError("bip44/bip49/bip84 should not be used to create custom address.", self.bip, "m/4'")
 
     def showpath(self, p):
         return "".join([s + "/" for s in p])
