@@ -55,6 +55,7 @@ class serialize(object):
         self.cointype = cointype.lower() if isinstance(cointype, str) else cointype
         self.testnet = testnet
         self.custom_addr_type = custom_addr_type
+        self.check_addr_type(custom_addr_type)
         self.adapt_path = adapt_path
         self.warning = warning
         self.initialize
@@ -99,7 +100,7 @@ class serialize(object):
         if not self.usingbip and not self.custom_addr_type and self.warning:
             warnings.warn("Are you using custom module? Specify your address type! Now your address type is {}.".format(self.custom_addr_type))
 
-        elif self.usingbip and self.custom_addr_type and self.warning:
+        elif self.usingbip and self.custom_addr_type:
             raise ParameterError("Are you using custom module? Purpose can not be {}.".format(self.bip), self.showpath(self.path), "m/2'/0(m/purpose/coin)")
 
     def check_version_byte(self):
