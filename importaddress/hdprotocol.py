@@ -55,7 +55,6 @@ class serialize(object):
         self.cointype = cointype.lower() if isinstance(cointype, str) else cointype
         self.testnet = testnet
         self.custom_addr_type = custom_addr_type
-        self.check_addr_type(custom_addr_type)
         self.adapt_path = adapt_path
         self.warning = warning
         self.initialize
