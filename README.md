@@ -1,6 +1,6 @@
 # Importaddress
 
-[![Build Status](https://travis-ci.org/kcorlidy/importaddress.svg?branch=master)](https://travis-ci.org/kcorlidy/importaddress) [![codecov](https://codecov.io/gh/kcorlidy/importaddress/branch/master/graph/badge.svg)](https://codecov.io/gh/kcorlidy/importaddress)
+[![Build Status](https://travis-ci.org/kcorlidy/importaddress.svg?branch=master)](https://travis-ci.org/kcorlidy/importaddress) [![codecov](https://codecov.io/gh/kcorlidy/importaddress/branch/master/graph/badge.svg)](https://codecov.io/gh/kcorlidy/importaddress)[![codebeat badge](https://codebeat.co/badges/8295fb11-479e-4d5f-9ed4-e0999dd531a6)](https://codebeat.co/projects/github-com-kcorlidy-importaddress-master)
 
 [TOC]
 
